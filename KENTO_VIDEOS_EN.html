@@ -1373,11 +1373,16 @@ function renderFrame() {
 
 function tick(stamp) {
   if(!playing) return;
-  if(lastStamp) {
-    const dt = (stamp - lastStamp) / 1000;
-    curTime = Math.min(curTime + dt, TOTAL);
+  // When voice is active and speaking: freeze the timeline so speech finishes
+  if(!voiceSpeaking) {
+    if(lastStamp) {
+      const dt = (stamp - lastStamp) / 1000;
+      curTime = Math.min(curTime + dt, TOTAL);
+    }
+    lastStamp = stamp;
+  } else {
+    lastStamp = null; // reset so no time-jump after speech ends
   }
-  lastStamp = stamp;
   renderFrame();
   if(curTime >= TOTAL) {
     playing = false;
@@ -1453,10 +1458,19 @@ const VOICEOVER = {
 };
 
 let voiceEnabled  = false;
+let voiceSpeaking = false; // true while TTS is active → freezes timeline
 let lastSpokenId  = null;
 let englishVoice  = null;
 const voiceBtn    = document.getElementById('voiceBtn');
 const subtitleEl  = document.getElementById('subtitleText');
+
+// ── Chrome bug fix: speechSynthesis stops after ~15s — keepalive every 10s ──
+setInterval(() => {
+  if (voiceEnabled && speechSynthesis.speaking && !speechSynthesis.paused) {
+    speechSynthesis.pause();
+    speechSynthesis.resume();
+  }
+}, 10000);
 
 // Robust voice loader — Chrome loads voices asynchronously
 function findEnglishVoice() {
@@ -1482,13 +1496,12 @@ function speak(sceneId) {
   const text = VOICEOVER[sceneId];
   if (!text) return;
 
-  // Herlaad stem als die nog niet gevonden was
   if (!englishVoice) englishVoice = findEnglishVoice();
 
   speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
+  voiceSpeaking = false; // reset before new utterance
 
-  // Always force en-US — browser will use English even without voice object
+  const utt = new SpeechSynthesisUtterance(text);
   utt.lang   = 'en-US';
   if (englishVoice) utt.voice = englishVoice;
   utt.rate   = 0.90;
@@ -1496,14 +1509,22 @@ function speak(sceneId) {
   utt.volume = 1.0;
 
   subtitleEl.textContent = text;
-  utt.onend = () => { if (voiceEnabled) subtitleEl.textContent = ''; };
-  utt.onerror = (e) => { if (e.error !== 'interrupted' && e.error !== 'canceled') console.warn('Speech error:', e.error); };
+
+  // Freeze timeline while speaking so voice never gets cut off by scene change
+  voiceSpeaking = true;
+  utt.onstart = () => { voiceSpeaking = true; };
+  utt.onend   = () => { voiceSpeaking = false; if (voiceEnabled) subtitleEl.textContent = ''; };
+  utt.onerror = (e) => {
+    voiceSpeaking = false;
+    if (e.error !== 'interrupted' && e.error !== 'canceled') console.warn('Speech error:', e.error);
+  };
   speechSynthesis.speak(utt);
 }
 
 function stopVoice() {
   speechSynthesis.cancel();
-  lastSpokenId = null;
+  voiceSpeaking = false;
+  lastSpokenId  = null;
   subtitleEl.textContent = '';
 }
 
