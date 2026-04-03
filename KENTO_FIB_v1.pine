@@ -1,0 +1,719 @@
+// This Pine Script® code is subject to the Mozilla Public License 2.0
+// © KENTO FIB SUITE v1 — Fibonacci + FVG + OB + EMA + Orderflow + Inducement + Seller SL/TP
+//@version=6
+indicator('KENTO FIB SUITE v1', overlay = true, max_boxes_count = 500, max_lines_count = 500, max_labels_count = 500)
+
+// ══════════════════════════════════════════════════════
+//  GROUPS
+// ══════════════════════════════════════════════════════
+var string FIB_GROUP    = 'Fibonacci'
+var string FVG_GROUP    = 'Fair Value Gaps'
+var string OB_GROUP     = 'Order Blocks'
+var string EMA_GROUP    = 'EMA'
+var string FLOW_GROUP   = 'Orderflow'
+var string IDM_GROUP    = 'Inducement'
+var string LBL_GROUP    = 'Label Instellingen'
+var string DASH_GROUP   = 'Dashboard'
+
+// ══════════════════════════════════════════════════════
+//  FIBONACCI SETTINGS
+// ══════════════════════════════════════════════════════
+showFib       = input.bool(true,  'Show Fibonacci Levels',              group = FIB_GROUP)
+showFibZones  = input.bool(true,  'Show Buy/Sell Zones',                group = FIB_GROUP,
+                  tooltip = 'Groen = Buy Zone 0.618–0.786 | Oranje = Sell Zone 0.236–0.382')
+showFibExt    = input.bool(true,  'Show Extensions -0.272 / -0.618',    group = FIB_GROUP)
+showBuyerSLTP = input.bool(true,  'Show Buyer SL / TP Lines',           group = FIB_GROUP)
+showSellerSLTP= input.bool(false, 'Show Seller SL / TP Lines',          group = FIB_GROUP,
+                  tooltip = 'Seller SL boven swing high + ATR. TP1=0.500, TP2=0.618, TP3=1.0 (oranje)')
+fibLookback   = input.int(100,    'Swing Lookback (bars)',               group = FIB_GROUP, minval = 20)
+
+// ══════════════════════════════════════════════════════
+//  FVG SETTINGS
+// ══════════════════════════════════════════════════════
+showFVG = input.bool(true, 'Show Fair Value Gaps', group = FVG_GROUP)
+fvgTF   = input.timeframe('', 'FVG Timeframe',     group = FVG_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  ORDER BLOCK SETTINGS
+// ══════════════════════════════════════════════════════
+showOB     = input.bool(true, 'Show Order Blocks', group = OB_GROUP)
+obLookback = input.int(5,     'OB Lookback Bars',  group = OB_GROUP, minval = 2, maxval = 20)
+
+// ══════════════════════════════════════════════════════
+//  EMA SETTINGS
+// ══════════════════════════════════════════════════════
+showEMA9   = input.bool(true,     'EMA 9',         group = EMA_GROUP)
+showEMA21  = input.bool(true,     'EMA 21',        group = EMA_GROUP)
+showEMA50  = input.bool(true,     'EMA 50',        group = EMA_GROUP)
+showEMA200 = input.bool(true,     'EMA 200',       group = EMA_GROUP)
+ema9Col    = input.color(#00bcd4, 'EMA 9 Color',   group = EMA_GROUP)
+ema21Col   = input.color(#ef5350, 'EMA 21 Color',  group = EMA_GROUP)
+ema50Col   = input.color(#ffd54f, 'EMA 50 Color',  group = EMA_GROUP)
+ema200Col  = input.color(#1565c0, 'EMA 200 Color', group = EMA_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  ORDERFLOW SETTINGS
+// ══════════════════════════════════════════════════════
+showFlow    = input.bool(true, 'Show Volume Delta',         group = FLOW_GROUP)
+flowLen     = input.int(20,    'Cumulative Delta Length',   group = FLOW_GROUP, minval = 5)
+showProfile = input.bool(true, 'Show Volume Profile (HVN)', group = FLOW_GROUP)
+profileLen  = input.int(50,    'Profile Lookback (bars)',   group = FLOW_GROUP, minval = 10, maxval = 200)
+profileBins = input.int(10,    'Profile Bins',              group = FLOW_GROUP, minval = 5, maxval = 20)
+
+// ══════════════════════════════════════════════════════
+//  INDUCEMENT SETTINGS
+// ══════════════════════════════════════════════════════
+showIDM   = input.bool(true, 'Show Inducement (IDM)', group = IDM_GROUP)
+idmLength = input.int(3,     'IDM Swing Length',      group = IDM_GROUP, minval = 2, maxval = 10)
+
+// ══════════════════════════════════════════════════════
+//  LABEL INSTELLINGEN
+// ══════════════════════════════════════════════════════
+// Tekst — compact symbolen als standaard
+lblIDMUp    = input.string('▲',    'Bullish IDM tekst',  group = LBL_GROUP)
+lblIDMDown  = input.string('▼',    'Bearish IDM tekst',  group = LBL_GROUP)
+lblBullOB   = input.string('B+',   'Bull OB tekst',      group = LBL_GROUP)
+lblBearOB   = input.string('B-',   'Bear OB tekst',      group = LBL_GROUP)
+lblFVGText  = input.string('G',    'FVG tekst',          group = LBL_GROUP)
+
+// Kleuren
+lblIDMUpBg    = input.color(#00c853, 'IDM ▲ achtergrond',  group = LBL_GROUP)
+lblIDMDownBg  = input.color(#ef5350, 'IDM ▼ achtergrond',  group = LBL_GROUP)
+lblBullOBBg   = input.color(#26a69a, 'Bull OB achtergrond', group = LBL_GROUP)
+lblBearOBBg   = input.color(#ef5350, 'Bear OB achtergrond', group = LBL_GROUP)
+lblFVGBullTxt = input.color(#2196F3, 'FVG Bull tekstkleur', group = LBL_GROUP)
+lblFVGBearTxt = input.color(#ef5350, 'FVG Bear tekstkleur', group = LBL_GROUP)
+
+// Grootte
+lblSize = input.string('Normal', 'Label Grootte', group = LBL_GROUP,
+              options = ['Tiny', 'Small', 'Normal', 'Large'])
+
+// Stijl
+lblIDMStyleInput = input.string('Pijl', 'IDM Label Stijl', group = LBL_GROUP,
+                      options = ['Pijl', 'Vlag', 'Tekst'])
+lblOBStyleInput  = input.string('Pijl', 'OB Label Stijl',  group = LBL_GROUP,
+                      options = ['Pijl', 'Vlag', 'Tekst'])
+
+// Buyer SL / TP tekst
+lblSLText  = input.string('SL',  'SL tekst',  group = LBL_GROUP)
+lblTP1Text = input.string('TP1', 'TP1 tekst', group = LBL_GROUP)
+lblTP2Text = input.string('TP2', 'TP2 tekst', group = LBL_GROUP)
+lblTP3Text = input.string('TP3', 'TP3 tekst', group = LBL_GROUP)
+
+// SL / TP label positie (los van de fib niveau labels)
+slTPPosInput = input.string('Links', 'SL/TP Label Positie', group = LBL_GROUP,
+                   options = ['Links', 'Rechts ver'])
+
+// Seller SL / TP tekst
+lblSellerSLText  = input.string('S-SL',  'Seller SL tekst',  group = LBL_GROUP)
+lblSellerTP1Text = input.string('S-TP1', 'Seller TP1 tekst', group = LBL_GROUP)
+lblSellerTP2Text = input.string('S-TP2', 'Seller TP2 tekst', group = LBL_GROUP)
+lblSellerTP3Text = input.string('S-TP3', 'Seller TP3 tekst', group = LBL_GROUP)
+
+// Seller label positie
+sellerSLTPPosInput = input.string('Links', 'Seller SL/TP Label Positie', group = LBL_GROUP,
+                         options = ['Links', 'Rechts ver'])
+
+// HVN tekst aanpassen
+lblHVN1Text = input.string('HVN 1', 'HVN 1 tekst', group = LBL_GROUP)
+lblHVN2Text = input.string('HVN 2', 'HVN 2 tekst', group = LBL_GROUP)
+lblHVN3Text = input.string('HVN 3', 'HVN 3 tekst', group = LBL_GROUP)
+
+// HVN kleur aanpassen
+lblHVNCol = input.color(#ff9800, 'HVN kleur', group = LBL_GROUP)
+
+// OB kleur aanpassen (box border)
+lblBullOBBorder = input.color(#26a69a, 'Bull OB border kleur', group = LBL_GROUP)
+lblBearOBBorder = input.color(#ef5350, 'Bear OB border kleur', group = LBL_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD SETTINGS
+// ══════════════════════════════════════════════════════
+dashSize     = input.string('Normal',      'Dashboard Size',    group = DASH_GROUP,
+                 options = ['Tiny', 'Small', 'Normal', 'Large'])
+dashPosInput = input.string('Right - Top', 'Dashboard Positie', group = DASH_GROUP,
+                 options = ['Right - Top',    'Right - Middle', 'Right - Bottom',
+                            'Left - Top',     'Left - Middle',  'Left - Bottom'])
+dashOpen     = input.bool(true, 'Dashboard Open', group = DASH_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  COLORS
+// ══════════════════════════════════════════════════════
+C_BULL    = color.new(#26a69a, 0)
+C_BEAR    = color.new(#ef5350, 0)
+C_NEUT    = color.new(#ffc107, 0)
+C_BLUE    = color.new(#2196F3, 0)
+C_PURP    = color.new(#7c4dff, 0)
+C_BUY_Z   = color.new(#00c853, 75)
+C_SELL_Z  = color.new(#ff6d00, 75)
+C_FIB     = color.new(#ffc107, 60)
+C_HVN     = color.new(#ff9800, 0)
+
+D_BULL_BG = color.new(#0d3320, 0)
+D_BEAR_BG = color.new(#3a0d0d, 0)
+D_NEUT_BG = color.new(#2a2000, 0)
+D_DARK_BG = color.new(#141920, 0)
+D_DIV_BG  = color.new(#0d1117, 0)
+D_WHITE   = color.new(#ffffff, 0)
+D_LGREY   = color.new(#9ba8b4, 0)
+D_ORNG_BG = color.new(#3a1f00, 0)
+
+// ══════════════════════════════════════════════════════
+//  LABEL STIJL BEREKENINGEN
+// ══════════════════════════════════════════════════════
+ls =
+     lblSize == 'Tiny'   ? size.tiny   :
+     lblSize == 'Normal' ? size.normal :
+     lblSize == 'Large'  ? size.large  : size.small
+
+idmUpStyle =
+     lblIDMStyleInput == 'Pijl' ? label.style_label_up         :
+     lblIDMStyleInput == 'Vlag' ? label.style_label_upper_right : label.style_label_center
+
+idmDownStyle =
+     lblIDMStyleInput == 'Pijl' ? label.style_label_down       :
+     lblIDMStyleInput == 'Vlag' ? label.style_label_lower_right : label.style_label_center
+
+obUpStyle =
+     lblOBStyleInput == 'Pijl' ? label.style_label_up          :
+     lblOBStyleInput == 'Vlag' ? label.style_label_upper_right  : label.style_label_center
+
+obDownStyle =
+     lblOBStyleInput == 'Pijl' ? label.style_label_down        :
+     lblOBStyleInput == 'Vlag' ? label.style_label_lower_right  : label.style_label_center
+
+// Buyer SL/TP positie
+slTPOnLeft   = slTPPosInput == 'Links'
+slTPLblStyle = slTPOnLeft ? label.style_label_right : label.style_label_left
+
+// Seller SL/TP positie
+sellerOnLeft   = sellerSLTPPosInput == 'Links'
+sellerLblStyle = sellerOnLeft ? label.style_label_right : label.style_label_left
+
+// ══════════════════════════════════════════════════════
+//  ATR
+// ══════════════════════════════════════════════════════
+atrVal = ta.atr(14)
+
+// ══════════════════════════════════════════════════════
+//  EMA
+// ══════════════════════════════════════════════════════
+ema9   = ta.ema(close, 9)
+ema21  = ta.ema(close, 21)
+ema50  = ta.ema(close, 50)
+ema200 = ta.ema(close, 200)
+
+plot(showEMA9   ? ema9   : na, 'EMA 9',   color = ema9Col,   linewidth = 1)
+plot(showEMA21  ? ema21  : na, 'EMA 21',  color = ema21Col,  linewidth = 1)
+plot(showEMA50  ? ema50  : na, 'EMA 50',  color = ema50Col,  linewidth = 1)
+plot(showEMA200 ? ema200 : na, 'EMA 200', color = ema200Col, linewidth = 2)
+
+emaTrend =
+     ema9 > ema21 and ema21 > ema50 and ema50 > ema200 ? 'BULLISH' :
+     ema9 < ema21 and ema21 < ema50 and ema50 < ema200 ? 'BEARISH' : 'MIXED'
+
+emaTrendBg =
+     emaTrend == 'BULLISH' ? D_BULL_BG :
+     emaTrend == 'BEARISH' ? D_BEAR_BG : D_NEUT_BG
+
+ema200Pos   = close > ema200 ? 'Boven' : 'Onder'
+ema200PosBg = close > ema200 ? D_BULL_BG : D_BEAR_BG
+
+// ══════════════════════════════════════════════════════
+//  FIBONACCI
+// ══════════════════════════════════════════════════════
+fibHigh = ta.highest(high, fibLookback)
+fibLow  = ta.lowest (low,  fibLookback)
+fibRng  = fibHigh - fibLow
+
+fib0   = fibHigh
+fib236 = fibHigh - fibRng * 0.236
+fib382 = fibHigh - fibRng * 0.382
+fib500 = fibHigh - fibRng * 0.500
+fib618 = fibHigh - fibRng * 0.618
+fib786 = fibHigh - fibRng * 0.786
+fib100 = fibLow
+
+// Fibonacci extensions (below swing low)
+fibExt127 = fibLow - fibRng * 0.272   // -0.272 extension
+fibExt161 = fibLow - fibRng * 0.618   // -0.618 extension
+
+// Zone detection
+inBuyZone  = close <= fib618 and close >= fib786
+inSellZone = close >= fib236 and close <= fib382
+
+// ── Buyer SL / TP (long setup) ──────────────────────
+// SL  = swing low − 0.5× ATR
+// TP1 = fib 0.500  (equilibrium)
+// TP2 = fib 0.382  (eerste premium)
+// TP3 = fib 0.0    (swing high — volledig doel)
+buyerSL  = fib100 - atrVal * 0.5
+buyerTP1 = fib500
+buyerTP2 = fib382
+buyerTP3 = fib0
+
+// ── Seller SL / TP (short setup) ────────────────────
+// SL  = swing high + 0.5× ATR  (boven fib 0.0)
+// TP1 = fib 0.500  (equilibrium)
+// TP2 = fib 0.618  (golden pocket)
+// TP3 = fib 1.000  (swing low — volledig doel)
+sellerSL  = fib0   + atrVal * 0.5
+sellerTP1 = fib500
+sellerTP2 = fib618
+sellerTP3 = fib100
+
+// Nearest fib level
+fibDist0   = math.abs(close - fib0)
+fibDist236 = math.abs(close - fib236)
+fibDist382 = math.abs(close - fib382)
+fibDist500 = math.abs(close - fib500)
+fibDist618 = math.abs(close - fib618)
+fibDist786 = math.abs(close - fib786)
+fibDist100 = math.abs(close - fib100)
+
+minFibDist =
+     math.min(
+         math.min(math.min(fibDist0, fibDist236), math.min(fibDist382, fibDist500)),
+         math.min(math.min(fibDist618, fibDist786), fibDist100))
+
+nearestFib =
+     minFibDist == fibDist0   ? '0.0'   :
+     minFibDist == fibDist236 ? '0.236' :
+     minFibDist == fibDist382 ? '0.382' :
+     minFibDist == fibDist500 ? '0.500' :
+     minFibDist == fibDist618 ? '0.618' :
+     minFibDist == fibDist786 ? '0.786' :
+     '1.0'
+
+fibZoneStr =
+     inBuyZone  ? 'BUY ZONE'  :
+     inSellZone ? 'SELL ZONE' : '-'
+
+fibZoneBg =
+     inBuyZone  ? D_BULL_BG :
+     inSellZone ? D_BEAR_BG : D_DARK_BG
+
+// Persistente arrays — voorkomt stapeling bij elke barstate.islast tick
+var line[]  fibLns  = array.new_line()
+var label[] fibLbls = array.new_label()
+var box[]   fibBxs  = array.new_box()
+
+if showFib and barstate.islast and not na(fibHigh)
+    // Verwijder alle vorige fib objecten voor hertekenen
+    for l in fibLns
+        line.delete(l)
+    for l in fibLbls
+        label.delete(l)
+    for b in fibBxs
+        box.delete(b)
+    array.clear(fibLns)
+    array.clear(fibLbls)
+    array.clear(fibBxs)
+
+    int lb = bar_index - fibLookback
+    int rb = bar_index + 8
+
+    // Main fib lines
+    array.push(fibLns, line.new(lb, fib0,   rb, fib0,   color = color.new(C_FIB,30),  style = line.style_solid,  width = 1))
+    array.push(fibLns, line.new(lb, fib236, rb, fib236, color = color.new(C_BEAR,50), style = line.style_dashed, width = 1))
+    array.push(fibLns, line.new(lb, fib382, rb, fib382, color = color.new(C_BEAR,30), style = line.style_dashed, width = 1))
+    array.push(fibLns, line.new(lb, fib500, rb, fib500, color = color.new(C_FIB,40),  style = line.style_dotted, width = 1))
+    array.push(fibLns, line.new(lb, fib618, rb, fib618, color = color.new(C_BULL,30), style = line.style_dashed, width = 1))
+    array.push(fibLns, line.new(lb, fib786, rb, fib786, color = color.new(C_BULL,40), style = line.style_dashed, width = 1))
+    array.push(fibLns, line.new(lb, fib100, rb, fib100, color = color.new(C_FIB,30),  style = line.style_solid,  width = 1))
+
+    // Extension lines
+    if showFibExt
+        array.push(fibLns, line.new(lb, fibExt127, rb, fibExt127, color = color.new(C_PURP,50), style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, fibExt161, rb, fibExt161, color = color.new(C_PURP,30), style = line.style_dashed, width = 1))
+
+    // Level labels
+    array.push(fibLbls, label.new(rb, fib0,   '0.0',   color = #00000000, textcolor = color.new(C_FIB,20),  style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib236, '0.236', color = #00000000, textcolor = color.new(C_BEAR,20), style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib382, '0.382', color = #00000000, textcolor = color.new(C_BEAR,20), style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib500, '0.500', color = #00000000, textcolor = color.new(C_FIB,20),  style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib618, '0.618', color = #00000000, textcolor = color.new(C_BULL,10), style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib786, '0.786', color = #00000000, textcolor = color.new(C_BULL,20), style = label.style_label_left, size = ls))
+    array.push(fibLbls, label.new(rb, fib100, '1.0',   color = #00000000, textcolor = color.new(C_FIB,20),  style = label.style_label_left, size = ls))
+    if showFibExt
+        array.push(fibLbls, label.new(rb, fibExt127, '-0.272', color = #00000000, textcolor = color.new(C_PURP,20), style = label.style_label_left, size = ls))
+        array.push(fibLbls, label.new(rb, fibExt161, '-0.618', color = #00000000, textcolor = color.new(C_PURP,20), style = label.style_label_left, size = ls))
+
+    // Buy Zone + Sell Zone
+    if showFibZones
+        array.push(fibBxs, box.new(lb, fib618, rb, fib786,
+             bgcolor = C_BUY_Z, border_color = color.new(#00c853,30), border_width = 1))
+        array.push(fibBxs, box.new(lb, fib236, rb, fib382,
+             bgcolor = C_SELL_Z, border_color = color.new(#ff6d00,30), border_width = 1))
+
+    // ── Buyer SL/TP lines + labels ──────────────────
+    if showBuyerSLTP
+        int slTPx = slTPOnLeft ? lb - 2 : rb + 8
+        array.push(fibLns, line.new(lb, buyerSL,  rb, buyerSL,  color = color.new(#ef5350,0),  style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, buyerTP1, rb, buyerTP1, color = color.new(#26a69a,40), style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, buyerTP2, rb, buyerTP2, color = color.new(#26a69a,20), style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, buyerTP3, rb, buyerTP3, color = color.new(#26a69a,0),  style = line.style_dashed, width = 2))
+        array.push(fibLbls, label.new(slTPx, buyerSL,  lblSLText,  color = color.new(#ef5350,10), textcolor = color.new(#ffffff,0), style = slTPLblStyle, size = ls))
+        array.push(fibLbls, label.new(slTPx, buyerTP1, lblTP1Text, color = color.new(#26a69a,40), textcolor = color.new(#ffffff,0), style = slTPLblStyle, size = ls))
+        array.push(fibLbls, label.new(slTPx, buyerTP2, lblTP2Text, color = color.new(#26a69a,20), textcolor = color.new(#ffffff,0), style = slTPLblStyle, size = ls))
+        array.push(fibLbls, label.new(slTPx, buyerTP3, lblTP3Text, color = color.new(#26a69a,0),  textcolor = color.new(#ffffff,0), style = slTPLblStyle, size = ls))
+
+    // ── Seller SL/TP lines + labels ─────────────────
+    if showSellerSLTP
+        int sellerTPx = sellerOnLeft ? lb - 2 : rb + 8
+        array.push(fibLns, line.new(lb, sellerSL,  rb, sellerSL,  color = color.new(#ef5350,0),  style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, sellerTP1, rb, sellerTP1, color = color.new(#ff9800,40), style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, sellerTP2, rb, sellerTP2, color = color.new(#ff9800,20), style = line.style_dashed, width = 1))
+        array.push(fibLns, line.new(lb, sellerTP3, rb, sellerTP3, color = color.new(#ff9800,0),  style = line.style_dashed, width = 2))
+        array.push(fibLbls, label.new(sellerTPx, sellerSL,  lblSellerSLText,  color = color.new(#ef5350,10), textcolor = color.new(#ffffff,0), style = sellerLblStyle, size = ls))
+        array.push(fibLbls, label.new(sellerTPx, sellerTP1, lblSellerTP1Text, color = color.new(#ff9800,40), textcolor = color.new(#ffffff,0), style = sellerLblStyle, size = ls))
+        array.push(fibLbls, label.new(sellerTPx, sellerTP2, lblSellerTP2Text, color = color.new(#ff9800,20), textcolor = color.new(#ffffff,0), style = sellerLblStyle, size = ls))
+        array.push(fibLbls, label.new(sellerTPx, sellerTP3, lblSellerTP3Text, color = color.new(#ff9800,0),  textcolor = color.new(#ffffff,0), style = sellerLblStyle, size = ls))
+
+// ══════════════════════════════════════════════════════
+//  FAIR VALUE GAPS
+// ══════════════════════════════════════════════════════
+// Persistente arrays — voorkomt stapeling op barstate.islast
+var box[]   fvgBxs  = array.new_box()
+var label[] fvgLbls = array.new_label()
+
+drawFVG() =>
+    [h2, l2, curH, curL] = request.security(syminfo.tickerid, fvgTF,
+         [high[2], low[2], high[0], low[0]],
+         lookahead = barmerge.lookahead_on)
+    bullFVG = h2 < curL    // gap: candle[2] high below candle[0] low
+    bearFVG = l2 > curH    // gap: candle[2] low above candle[0] high
+    if showFVG and barstate.islast
+        // Verwijder vorige FVG objecten voor hertekenen
+        for b in fvgBxs
+            box.delete(b)
+        for l in fvgLbls
+            label.delete(l)
+        array.clear(fvgBxs)
+        array.clear(fvgLbls)
+        if bullFVG
+            array.push(fvgBxs,  box.new(bar_index - 2, curL, bar_index + 5, h2,
+                 bgcolor = color.new(#2196F3,88), border_color = color.new(#2196F3,60), border_width = 1))
+            array.push(fvgLbls, label.new(bar_index - 1, (curL + h2) / 2, lblFVGText,
+                 color = #00000000, textcolor = color.new(lblFVGBullTxt, 10),
+                 style = label.style_label_center, size = ls))
+        if bearFVG
+            array.push(fvgBxs,  box.new(bar_index - 2, l2, bar_index + 5, curH,
+                 bgcolor = color.new(#ef5350,88), border_color = color.new(#ef5350,60), border_width = 1))
+            array.push(fvgLbls, label.new(bar_index - 1, (l2 + curH) / 2, lblFVGText,
+                 color = #00000000, textcolor = color.new(lblFVGBearTxt, 10),
+                 style = label.style_label_center, size = ls))
+
+drawFVG()
+
+// ══════════════════════════════════════════════════════
+//  ORDER BLOCKS
+// ══════════════════════════════════════════════════════
+// Bullish OB = laatste bearish candle VOOR een bullish BOS
+// Bearish OB = laatste bullish candle VOOR een bearish BOS
+
+swH_ob = ta.pivothigh(high, obLookback, obLookback)
+swL_ob = ta.pivotlow (low,  obLookback, obLookback)
+
+var float lastSH_ob = na
+var float lastSL_ob = na
+
+if not na(swH_ob)
+    lastSH_ob := swH_ob
+if not na(swL_ob)
+    lastSL_ob := swL_ob
+
+bullBOS_ob = not na(lastSH_ob) and close > lastSH_ob and close[1] <= lastSH_ob
+bearBOS_ob = not na(lastSL_ob) and close < lastSL_ob and close[1] >= lastSL_ob
+
+var string lastOBStr     = '-'
+var color  lastOBCol     = D_DARK_BG
+var int    lastBullOBBar = -999
+var int    lastBearOBBar = -999
+int        obCooldown    = obLookback * 3
+
+if showOB
+    if bullBOS_ob and bar_index >= obLookback
+             and (bar_index - lastBullOBBar) >= obCooldown
+        for i = 1 to obLookback
+            if close[i] < open[i]
+                box.new(bar_index - i, high[i], bar_index + 5, low[i],
+                     bgcolor = color.new(lblBullOBBg,75), border_color = color.new(lblBullOBBorder,40), border_width = 1)
+                label.new(bar_index - i, high[i], lblBullOB,
+                     color = color.new(lblBullOBBg, 20), textcolor = color.new(#ffffff,0),
+                     style = obDownStyle, size = ls)
+                lastOBStr     := lblBullOB
+                lastOBCol     := D_BULL_BG
+                lastBullOBBar := bar_index
+                break
+
+    if bearBOS_ob and bar_index >= obLookback
+             and (bar_index - lastBearOBBar) >= obCooldown
+        for i = 1 to obLookback
+            if close[i] > open[i]
+                box.new(bar_index - i, high[i], bar_index + 5, low[i],
+                     bgcolor = color.new(lblBearOBBg,75), border_color = color.new(lblBearOBBorder,40), border_width = 1)
+                label.new(bar_index - i, low[i], lblBearOB,
+                     color = color.new(lblBearOBBg, 20), textcolor = color.new(#ffffff,0),
+                     style = obUpStyle, size = ls)
+                lastOBStr     := lblBearOB
+                lastOBCol     := D_BEAR_BG
+                lastBearOBBar := bar_index
+                break
+
+// ══════════════════════════════════════════════════════
+//  INDUCEMENT RECOGNITION
+// ══════════════════════════════════════════════════════
+// IDM = prijs sweept een minor swing met een wick, maar sluit terug
+// Bullish IDM: wick onder minor swing low, close BOVEN die level → sweep van sell-side liquiditeit
+// Bearish IDM: wick boven minor swing high, close ONDER die level → sweep van buy-side liquiditeit
+
+minSwH = ta.pivothigh(high, idmLength, idmLength)
+minSwL = ta.pivotlow (low,  idmLength, idmLength)
+
+var float idmHighLevel = na
+var float idmLowLevel  = na
+
+if not na(minSwH)
+    idmHighLevel := minSwH
+if not na(minSwL)
+    idmLowLevel := minSwL
+
+bearIDM = showIDM and not na(idmHighLevel) and high > idmHighLevel and close < idmHighLevel
+bullIDM = showIDM and not na(idmLowLevel)  and low  < idmLowLevel  and close > idmLowLevel
+
+bool prevBearIDM = bearIDM[1]
+bool prevBullIDM = bullIDM[1]
+
+var string lastIDMStr = '-'
+var color  lastIDMCol = D_DARK_BG
+
+if bearIDM and not prevBearIDM
+    label.new(bar_index, high + atrVal * 0.4, lblIDMDown,
+         color = color.new(lblIDMDownBg, 20), textcolor = color.new(#ffffff,0),
+         style = idmDownStyle, size = ls)
+    lastIDMStr := 'Bear IDM'
+    lastIDMCol := D_BEAR_BG
+
+if bullIDM and not prevBullIDM
+    label.new(bar_index, low - atrVal * 0.4, lblIDMUp,
+         color = color.new(lblIDMUpBg, 20), textcolor = color.new(#ffffff,0),
+         style = idmUpStyle, size = ls)
+    lastIDMStr := 'Bull IDM'
+    lastIDMCol := D_BULL_BG
+
+// ══════════════════════════════════════════════════════
+//  ORDERFLOW — VOLUME DELTA
+// ══════════════════════════════════════════════════════
+// Buying/selling pressure per candle gebaseerd op close positie vs high/low range
+hlRange = high - low
+buyVol  = hlRange > 0 ? volume * (close - low)  / hlRange : volume * 0.5
+sellVol = hlRange > 0 ? volume * (high - close) / hlRange : volume * 0.5
+delta   = buyVol - sellVol
+
+cumDelta    = math.sum(delta, flowLen)
+deltaStr    = delta > 0 ?
+     '+' + str.tostring(math.round(delta / 1000), '#.#') + 'K' :
+     str.tostring(math.round(delta / 1000), '#.#') + 'K'
+cumDeltaStr = cumDelta > 0 ?
+     '+' + str.tostring(math.round(cumDelta / 1000), '#.#') + 'K' :
+     str.tostring(math.round(cumDelta / 1000), '#.#') + 'K'
+
+deltaBg    = delta > 0    ? D_BULL_BG : D_BEAR_BG
+cumDeltaBg = cumDelta > 0 ? D_BULL_BG : D_BEAR_BG
+
+// ══════════════════════════════════════════════════════
+//  VOLUME PROFILE — HVN (High Volume Nodes)
+// ══════════════════════════════════════════════════════
+// ta.highest / ta.lowest buiten if blok — Pine v6 best practice
+profileHigh = ta.highest(high, profileLen)
+profileLow  = ta.lowest (low,  profileLen)
+
+var float hvn1 = na
+var float hvn2 = na
+var float hvn3 = na
+
+// Persistente HVN objecten — delete voor hertekenen zodat geen stapeling
+var line  hvnLn1  = na
+var line  hvnLn2  = na
+var line  hvnLn3  = na
+var label hvnLbl1 = na
+var label hvnLbl2 = na
+var label hvnLbl3 = na
+
+if showProfile and barstate.islast
+    float phigh   = profileHigh
+    float plow    = profileLow
+    float prange  = phigh - plow
+    float binSize = prange / profileBins
+
+    array<float> volBins = array.new_float(profileBins, 0.0)
+
+    for i = 0 to profileLen - 1
+        float mid = (high[i] + low[i]) / 2.0
+        int   idx = int(math.floor((mid - plow) / binSize))
+        idx := math.max(math.min(idx, profileBins - 1), 0)
+        array.set(volBins, idx, array.get(volBins, idx) + volume[i])
+
+    // Top 3 hoogste volume buckets
+    float v1 = 0.0
+    float v2 = 0.0
+    float v3 = 0.0
+    int   i1 = 0
+    int   i2 = 0
+    int   i3 = 0
+
+    for b = 0 to profileBins - 1
+        float v = array.get(volBins, b)
+        if v > v1
+            v3 := v2
+            i3 := i2
+            v2 := v1
+            i2 := i1
+            v1 := v
+            i1 := b
+        else if v > v2
+            v3 := v2
+            i3 := i2
+            v2 := v
+            i2 := b
+        else if v > v3
+            v3 := v
+            i3 := b
+
+    hvn1 := plow + (i1 + 0.5) * binSize
+    hvn2 := plow + (i2 + 0.5) * binSize
+    hvn3 := plow + (i3 + 0.5) * binSize
+
+    int lb3 = bar_index - profileLen
+    int rb3 = bar_index + 8
+
+    // Verwijder vorige HVN objecten voor hertekenen
+    line.delete(hvnLn1)
+    line.delete(hvnLn2)
+    line.delete(hvnLn3)
+    label.delete(hvnLbl1)
+    label.delete(hvnLbl2)
+    label.delete(hvnLbl3)
+
+    hvnLn1  := line.new(lb3, hvn1, rb3, hvn1, color = color.new(lblHVNCol,20), style = line.style_dotted, width = 2)
+    hvnLn2  := line.new(lb3, hvn2, rb3, hvn2, color = color.new(lblHVNCol,45), style = line.style_dotted, width = 1)
+    hvnLn3  := line.new(lb3, hvn3, rb3, hvn3, color = color.new(lblHVNCol,60), style = line.style_dotted, width = 1)
+    hvnLbl1 := label.new(rb3, hvn1, lblHVN1Text, color = #00000000, textcolor = color.new(lblHVNCol,0),  style = label.style_label_left, size = ls)
+    hvnLbl2 := label.new(rb3, hvn2, lblHVN2Text, color = #00000000, textcolor = color.new(lblHVNCol,20), style = label.style_label_left, size = ls)
+    hvnLbl3 := label.new(rb3, hvn3, lblHVN3Text, color = #00000000, textcolor = color.new(lblHVNCol,35), style = label.style_label_left, size = ls)
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════
+ds =
+     dashSize == 'Tiny'  ? size.tiny  :
+     dashSize == 'Small' ? size.small :
+     dashSize == 'Large' ? size.large : size.normal
+
+dashPos =
+     dashPosInput == 'Right - Top'    ? position.top_right    :
+     dashPosInput == 'Right - Middle' ? position.middle_right :
+     dashPosInput == 'Right - Bottom' ? position.bottom_right :
+     dashPosInput == 'Left - Top'     ? position.top_left     :
+     dashPosInput == 'Left - Middle'  ? position.middle_left  :
+     position.bottom_left
+
+// 23 rijen: 1 header + 17 bestaande + 5 seller SL/TP
+var table dash = table.new(dashPos, 2, 23,
+     bgcolor      = color.new(#0d1117, 0),
+     border_color = color.new(#2a2a2a, 0),
+     border_width = 1,
+     frame_color  = color.new(#333333, 0),
+     frame_width  = 1)
+
+lbl(r, txt) =>
+    table.cell(dash, 0, r, txt, text_color = D_LGREY, bgcolor = D_DARK_BG, text_size = ds, text_halign = text.align_left)
+val(r, txt, bg) =>
+    table.cell(dash, 1, r, txt, text_color = D_WHITE,  bgcolor = bg,       text_size = ds, text_halign = text.align_right)
+div(r, txt, col) =>
+    table.cell(dash, 0, r, txt, text_color = col, bgcolor = D_DIV_BG, text_size = ds, text_halign = text.align_left)
+    table.merge_cells(dash, 0, r, 1, r)
+
+// Dashboard waarden
+slStr      = str.tostring(buyerSL,  '#.####')
+tp1Str     = str.tostring(buyerTP1, '#.####')
+tp2Str     = str.tostring(buyerTP2, '#.####')
+tp3Str     = str.tostring(buyerTP3, '#.####')
+sSlStr     = str.tostring(sellerSL,  '#.####')
+sStp1Str   = str.tostring(sellerTP1, '#.####')
+sStp2Str   = str.tostring(sellerTP2, '#.####')
+sStp3Str   = str.tostring(sellerTP3, '#.####')
+
+if barstate.islast and dashOpen
+    // Header
+    table.cell(dash, 0, 0, 'KENTO FIB SUITE',
+         text_color = D_WHITE, bgcolor = color.new(#0a1628,0),
+         text_size = ds, text_halign = text.align_center)
+    table.merge_cells(dash, 0, 0, 1, 0)
+
+    // Fibonacci sectie
+    div(1, '◈ Fibonacci', color.new(#ffc107,0))
+    lbl(2, 'Niveau')
+    val(2, nearestFib, D_DARK_BG)
+    lbl(3, 'Zone')
+    val(3, fibZoneStr, fibZoneBg)
+
+    // EMA sectie
+    div(4, '◈ EMA Trend', color.new(#ffd54f,0))
+    lbl(5, 'Alignment')
+    val(5, emaTrend, emaTrendBg)
+    lbl(6, 'EMA 200')
+    val(6, ema200Pos, ema200PosBg)
+
+    // Orderflow sectie
+    div(7, '◈ Orderflow', color.new(#00bcd4,0))
+    lbl(8, 'Delta')
+    val(8, deltaStr, deltaBg)
+    lbl(9, 'Cum Delta')
+    val(9, cumDeltaStr, cumDeltaBg)
+
+    // Levels sectie
+    div(10, '◈ Levels', color.new(#64b5f6,0))
+    lbl(11, 'Order Block')
+    val(11, lastOBStr, lastOBCol)
+    lbl(12, 'Inducement')
+    val(12, lastIDMStr, lastIDMCol)
+
+    // Buyer SL/TP sectie
+    div(13, '◈ Buyer SL / TP', color.new(#00c853,0))
+    lbl(14, 'SL')
+    val(14, slStr, D_BEAR_BG)
+    lbl(15, 'TP1 (0.5)')
+    val(15, tp1Str, D_BULL_BG)
+    lbl(16, 'TP2 (0.382)')
+    val(16, tp2Str, D_BULL_BG)
+    lbl(17, 'TP3 (0.0)')
+    val(17, tp3Str, D_BULL_BG)
+
+    // Seller SL/TP sectie
+    div(18, '◈ Seller SL / TP', color.new(#ff9800,0))
+    lbl(19, 'S-SL')
+    val(19, sSlStr, D_BEAR_BG)
+    lbl(20, 'S-TP1 (0.5)')
+    val(20, sStp1Str, D_ORNG_BG)
+    lbl(21, 'S-TP2 (0.618)')
+    val(21, sStp2Str, D_ORNG_BG)
+    lbl(22, 'S-TP3 (1.0)')
+    val(22, sStp3Str, D_ORNG_BG)
+
+// ══════════════════════════════════════════════════════
+//  ALERTS
+// ══════════════════════════════════════════════════════
+alertcondition(inBuyZone  and not inBuyZone[1],  'Fib Buy Zone',    'KENTO FIB - In Buy Zone (0.618–0.786)')
+alertcondition(inSellZone and not inSellZone[1], 'Fib Sell Zone',   'KENTO FIB - In Sell Zone (0.236–0.382)')
+alertcondition(bullBOS_ob,                       'Bull BOS',        'KENTO FIB - Bullish BOS')
+alertcondition(bearBOS_ob,                       'Bear BOS',        'KENTO FIB - Bearish BOS')
+alertcondition(bullIDM and not prevBullIDM,      'Bull IDM Sweep',  'KENTO FIB - Bullish Inducement Swept')
+alertcondition(bearIDM and not prevBearIDM,      'Bear IDM Sweep',  'KENTO FIB - Bearish Inducement Swept')
+alertcondition(math.abs(close - fib618) < atrVal * 0.1, 'Fib 0.618 Touch', 'KENTO FIB - 0.618 Level Touch')
+alertcondition(math.abs(close - fib786) < atrVal * 0.1, 'Fib 0.786 Touch', 'KENTO FIB - 0.786 Level Touch')
+alertcondition(math.abs(close - fib236) < atrVal * 0.1, 'Fib 0.236 Touch', 'KENTO FIB - 0.236 Level Touch')
+alertcondition(math.abs(close - fib382) < atrVal * 0.1, 'Fib 0.382 Touch', 'KENTO FIB - 0.382 Level Touch')
+alertcondition(cumDelta > 0 and cumDelta[1] <= 0,        'Delta Positief',  'KENTO FIB - Cum Delta turned Positive')
+alertcondition(cumDelta < 0 and cumDelta[1] >= 0,        'Delta Negatief',  'KENTO FIB - Cum Delta turned Negative')

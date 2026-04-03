@@ -1,0 +1,514 @@
+// This Pine Script® code is subject to the Mozilla Public License 2.0
+// © KENTO SUITE v1 — SMC + SCALPER combined indicator
+//@version=6
+indicator('KENTO SUITE v1', overlay = true, max_boxes_count = 500, max_lines_count = 500, max_labels_count = 500)
+
+// ══════════════════════════════════════════════════════
+//  GROUPS
+// ══════════════════════════════════════════════════════
+var string MODE_GROUP    = 'Mode Selector'
+var string SMC_GROUP     = 'SMC Settings'
+var string FVG_GROUP     = 'Fair Value Gaps'
+var string EMA_GROUP     = 'EMA Instellingen'
+var string SCALPER_GROUP = 'Scalper Settings'
+var string DASH_GROUP    = 'Dashboard'
+
+// ══════════════════════════════════════════════════════
+//  MODE SELECTOR
+// ══════════════════════════════════════════════════════
+modeInput    = input.string('Combined', 'Mode', options = ['SMC Only', 'Scalper Only', 'Combined'], group = MODE_GROUP)
+showSMC      = modeInput == 'SMC Only'     or modeInput == 'Combined'
+showScalper  = modeInput == 'Scalper Only' or modeInput == 'Combined'
+combinedMode = modeInput == 'Combined'
+
+// ══════════════════════════════════════════════════════
+//  SMC SETTINGS
+// ══════════════════════════════════════════════════════
+swingLength     = input.int(10,     'Swing Length',           group = SMC_GROUP)
+labelSizeInput  = input.string('Normal', 'Label Grootte',     group = SMC_GROUP,
+                      options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge'])
+showBOS         = input.bool(true,  'Show BOS',               group = SMC_GROUP)
+showCHoCH       = input.bool(true,  'Show CHoCH',             group = SMC_GROUP)
+showOrderBlocks = input.bool(true,  'Show Order Blocks',      group = SMC_GROUP)
+obLength        = input.int(5,      'OB Lookback',            group = SMC_GROUP)
+showPremDisc    = input.bool(true,  'Show Premium/Discount',  group = SMC_GROUP)
+showEQHL        = input.bool(true,  'Show EQH/EQL',           group = SMC_GROUP)
+eqThreshold     = input.float(0.001,'EQH/EQL Threshold %',   group = SMC_GROUP, step = 0.001)
+
+fairValueGapsTimeframe = input.timeframe('', 'FVG Timeframe',       group = FVG_GROUP)
+showFVG                = input.bool(true,    'Show Fair Value Gaps', group = FVG_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  EMA SETTINGS
+// ══════════════════════════════════════════════════════
+emaFastLen   = input.int(9,         'EMA Fast - Periode', group = EMA_GROUP)
+emaFastColor = input.color(#00bcd4, 'EMA Fast - Kleur',   group = EMA_GROUP)
+emaFastWidth = input.int(1,         'EMA Fast - Dikte',   group = EMA_GROUP, minval = 1, maxval = 4)
+emaSlowLen   = input.int(21,        'EMA Slow - Periode', group = EMA_GROUP)
+emaSlowColor = input.color(#ef5350, 'EMA Slow - Kleur',   group = EMA_GROUP)
+emaSlowWidth = input.int(1,         'EMA Slow - Dikte',   group = EMA_GROUP, minval = 1, maxval = 4)
+showEma50    = input.bool(true,     'EMA 50 - Tonen',     group = EMA_GROUP)
+ema50Color   = input.color(#ffd54f, 'EMA 50 - Kleur',     group = EMA_GROUP)
+ema50Width   = input.int(1,         'EMA 50 - Dikte',     group = EMA_GROUP, minval = 1, maxval = 4)
+showEma200   = input.bool(true,     'EMA 200 - Tonen',    group = EMA_GROUP)
+ema200Color  = input.color(#1565c0, 'EMA 200 - Kleur',    group = EMA_GROUP)
+ema200Width  = input.int(2,         'EMA 200 - Dikte',    group = EMA_GROUP, minval = 1, maxval = 4)
+
+// ══════════════════════════════════════════════════════
+//  SCALPER SETTINGS
+// ══════════════════════════════════════════════════════
+atrLen       = input.int(14,    'ATR Length',            group = SCALPER_GROUP)
+atrMult      = input.float(1.5, 'SL ATR Mult',           group = SCALPER_GROUP, step = 0.1)
+volMaLen     = input.int(20,    'Volume MA Length',      group = SCALPER_GROUP)
+cooldownBars = input.int(3,     'Signal Cooldown (bars)',group = SCALPER_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD SETTINGS
+// ══════════════════════════════════════════════════════
+dashSize     = input.string('Normal',      'Dashboard Size',     group = DASH_GROUP, options = ['Tiny', 'Small', 'Normal', 'Large'])
+dashPosInput = input.string('Right - Top', 'Dashboard Position', group = DASH_GROUP,
+                 options = ['Right - Top', 'Right - Middle', 'Right - Bottom',
+                            'Left - Top',  'Left - Middle',  'Left - Bottom'])
+dashOpen    = input.bool(true,  'Dashboard Open',  group = DASH_GROUP)
+dashCompact = input.bool(false, 'Compact Mode',    group = DASH_GROUP)
+
+// ══════════════════════════════════════════════════════
+//  COLORS
+// ══════════════════════════════════════════════════════
+C_BULL    = color.new(#26a69a, 0)
+C_BEAR    = color.new(#ef5350, 0)
+C_NEUT    = color.new(#ffc107, 0)
+C_BLUE    = color.new(#2196F3, 0)
+C_GREY    = color.new(#8b949e, 0)
+C_OB_BULL = color.new(#26a69a, 75)
+C_OB_BEAR = color.new(#ef5350, 75)
+C_FVG_B   = color.new(#2196F3, 88)
+C_FVG_S   = color.new(#ef5350, 88)
+
+// Zone colors
+C_PREM    = color.new(#ef5350, 93)   // premium zone — heel licht rood
+C_DISC    = color.new(#26a69a, 93)   // discount zone — heel licht groen
+
+// Dashboard colors
+D_BULL_BG = color.new(#0d3320, 0)
+D_BEAR_BG = color.new(#3a0d0d, 0)
+D_NEUT_BG = color.new(#2a2000, 0)
+D_DARK_BG = color.new(#141920, 0)
+D_DIV_BG  = color.new(#0d1117, 0)
+D_WHITE   = color.new(#ffffff, 0)
+D_LGREY   = color.new(#9ba8b4, 0)
+
+// ══════════════════════════════════════════════════════
+//  SIZE + POSITION
+// ══════════════════════════════════════════════════════
+ds =
+     dashSize == 'Tiny'  ? size.tiny  :
+     dashSize == 'Small' ? size.small :
+     dashSize == 'Large' ? size.large : size.normal
+
+dashPos =
+     dashPosInput == 'Right - Top'    ? position.top_right    :
+     dashPosInput == 'Right - Middle' ? position.middle_right :
+     dashPosInput == 'Right - Bottom' ? position.bottom_right :
+     dashPosInput == 'Left - Top'     ? position.top_left     :
+     dashPosInput == 'Left - Middle'  ? position.middle_left  :
+     position.bottom_left
+
+// Label grootte — één instelling voor alle labels op de chart
+lsz =
+     labelSizeInput == 'Tiny'  ? size.tiny   :
+     labelSizeInput == 'Small' ? size.small  :
+     labelSizeInput == 'Large' ? size.large  :
+     labelSizeInput == 'Huge'  ? size.huge   : size.normal
+
+// ══════════════════════════════════════════════════════
+//  SMC CALCULATIONS
+// ══════════════════════════════════════════════════════
+swingHigh = ta.pivothigh(high, swingLength, swingLength)
+swingLow  = ta.pivotlow (low,  swingLength, swingLength)
+
+var float lastSwingHigh = na
+var float lastSwingLow  = na
+var float prevSwingHigh = na
+var float prevSwingLow  = na
+var int   lastSHBar     = na   // bar_index van de swing high (voor lijn startpunt)
+var int   lastSLBar     = na   // bar_index van de swing low  (voor lijn startpunt)
+
+if not na(swingHigh)
+    prevSwingHigh := lastSwingHigh
+    lastSwingHigh := swingHigh
+    lastSHBar     := bar_index - swingLength   // pivot zit swingLength bars terug
+if not na(swingLow)
+    prevSwingLow := lastSwingLow
+    lastSwingLow := swingLow
+    lastSLBar    := bar_index - swingLength
+
+var bool  bullBOS   = false
+var bool  bearBOS   = false
+var bool  bullCHoCH = false
+var bool  bearCHoCH = false
+var float smcBias_f = 0.0
+
+// Cooldown — voorkomt dat labels samenklonteren op choppy markten
+var int lastBullBOSBar = -999
+var int lastBearBOSBar = -999
+var int lastBullCHBar  = -999
+var int lastBearCHBar  = -999
+int smcCooldown = swingLength * 2   // minimaal 2× swingLength bars tussen tekeningen
+
+// Detecteer alleen op eerste bar van de gebeurtenis
+bool prevBullBOS   = bullBOS
+bool prevBearBOS   = bearBOS
+bool prevBullCHoCH = bullCHoCH
+bool prevBearCHoCH = bearCHoCH
+
+bullBOS   := showSMC and not na(lastSwingHigh) and close > lastSwingHigh and close[1] <= lastSwingHigh
+bearBOS   := showSMC and not na(lastSwingLow)  and close < lastSwingLow  and close[1] >= lastSwingLow
+bullCHoCH := showSMC and not na(lastSwingLow)  and close > lastSwingLow  and smcBias_f < 0
+bearCHoCH := showSMC and not na(lastSwingHigh) and close < lastSwingHigh and smcBias_f > 0
+
+if bullBOS or bullCHoCH
+    smcBias_f := 1.0
+if bearBOS or bearCHoCH
+    smcBias_f := -1.0
+
+smcBiasStr = smcBias_f > 0 ? 'BULLISH' : smcBias_f < 0 ? 'BEARISH' : 'NEUTRAAL'
+
+// BOS — lijn van swing punt tot break bar + label in het midden (met cooldown)
+if showSMC and showBOS
+    if bullBOS and not prevBullBOS and not na(lastSHBar)
+             and (bar_index - lastBullBOSBar) >= smcCooldown
+        int midBOS_b = int((lastSHBar + bar_index) / 2)
+        line.new(lastSHBar, lastSwingHigh, bar_index, lastSwingHigh,
+             color = color.new(#00c853, 20), style = line.style_dashed, width = 1)
+        label.new(midBOS_b, lastSwingHigh, 'BOS',
+             color = #00000000, textcolor = color.new(#00c853, 0),
+             style = label.style_label_center, size = lsz)
+        lastBullBOSBar := bar_index
+    if bearBOS and not prevBearBOS and not na(lastSLBar)
+             and (bar_index - lastBearBOSBar) >= smcCooldown
+        int midBOS_s = int((lastSLBar + bar_index) / 2)
+        line.new(lastSLBar, lastSwingLow, bar_index, lastSwingLow,
+             color = color.new(#ef5350, 20), style = line.style_dashed, width = 1)
+        label.new(midBOS_s, lastSwingLow, 'BOS',
+             color = #00000000, textcolor = color.new(#ef5350, 0),
+             style = label.style_label_center, size = lsz)
+        lastBearBOSBar := bar_index
+
+// CHoCH — lijn van swing punt tot break bar + label in het midden (met cooldown)
+if showSMC and showCHoCH
+    if bullCHoCH and not prevBullCHoCH and not na(lastSLBar)
+             and (bar_index - lastBullCHBar) >= smcCooldown
+        int midCH_b = int((lastSLBar + bar_index) / 2)
+        line.new(lastSLBar, lastSwingLow, bar_index, lastSwingLow,
+             color = color.new(#00c853, 40), style = line.style_dotted, width = 1)
+        label.new(midCH_b, lastSwingLow, 'CHoCH',
+             color = #00000000, textcolor = color.new(#00c853, 0),
+             style = label.style_label_center, size = lsz)
+        lastBullCHBar := bar_index
+    if bearCHoCH and not prevBearCHoCH and not na(lastSHBar)
+             and (bar_index - lastBearCHBar) >= smcCooldown
+        int midCH_s = int((lastSHBar + bar_index) / 2)
+        line.new(lastSHBar, lastSwingHigh, bar_index, lastSwingHigh,
+             color = color.new(#ef5350, 40), style = line.style_dotted, width = 1)
+        label.new(midCH_s, lastSwingHigh, 'CHoCH',
+             color = #00000000, textcolor = color.new(#ef5350, 0),
+             style = label.style_label_center, size = lsz)
+        lastBearCHBar := bar_index
+
+// ══════════════════════════════════════════════════════
+//  PREMIUM / DISCOUNT ZONES
+// ══════════════════════════════════════════════════════
+var float rangeHigh  = na
+var float rangeLow   = na
+var float rangeMid   = na
+var bool  inPremium  = false
+var bool  inDiscount = false
+var string zoneStr   = 'Neutraal'
+var color  zoneCol   = C_NEUT
+
+if not na(lastSwingHigh) and not na(lastSwingLow)
+    rangeHigh := lastSwingHigh
+    rangeLow  := lastSwingLow
+    rangeMid  := (rangeHigh + rangeLow) / 2
+
+if not na(rangeMid)
+    inPremium  := close > rangeMid
+    inDiscount := close < rangeMid
+    zoneStr    := inPremium ? 'Premium' : inDiscount ? 'Discount' : 'Equilibrium'
+    zoneCol    := inPremium ? C_BEAR : inDiscount ? C_BULL : C_NEUT
+
+// Zone achtergronden — var box zodat oude versie verwijderd wordt voor nieuwe
+var box premBox = na
+var box discBox = na
+
+if showSMC and showPremDisc and barstate.islast and not na(rangeMid)
+    box.delete(premBox)
+    box.delete(discBox)
+    premBox := box.new(bar_index - 50, rangeHigh, bar_index + 10, rangeMid,
+         bgcolor = C_PREM, border_color = color.new(C_BEAR,80), border_width = 1)
+    discBox := box.new(bar_index - 50, rangeMid,  bar_index + 10, rangeLow,
+         bgcolor = C_DISC, border_color = color.new(C_BULL,80), border_width = 1)
+
+// ══════════════════════════════════════════════════════
+//  ORDER BLOCKS
+// ══════════════════════════════════════════════════════
+var float  obBullHigh = na
+var float  obBullLow  = na
+var float  obBearHigh = na
+var float  obBearLow  = na
+var string obStr      = 'Geen'
+
+if showSMC and showOrderBlocks
+    if bullBOS and bar_index >= obLength
+        obBullHigh := high[obLength]
+        obBullLow  := low [obLength]
+        box.new(bar_index - obLength, obBullHigh, bar_index + 5, obBullLow,
+             bgcolor = C_OB_BULL, border_color = color.new(C_BULL,40), border_width = 1)
+        obStr := 'Bullish OB'
+    if bearBOS and bar_index >= obLength
+        obBearHigh := high[obLength]
+        obBearLow  := low [obLength]
+        box.new(bar_index - obLength, obBearHigh, bar_index + 5, obBearLow,
+             bgcolor = C_OB_BEAR, border_color = color.new(C_BEAR,40), border_width = 1)
+        obStr := 'Bearish OB'
+
+// ══════════════════════════════════════════════════════
+//  FAIR VALUE GAPS
+// ══════════════════════════════════════════════════════
+drawFairValueGaps() =>
+    [c1, o1, t1, curH, curL, curT, h2, l2] = request.security(syminfo.tickerid, fairValueGapsTimeframe,
+         [close[1], open[1], time[1], high[0], low[0], time[0], high[2], low[2]],
+         lookahead = barmerge.lookahead_on)
+    bullFVG = c1 > h2
+    bearFVG = c1 < l2
+    if showFVG and barstate.islast
+        if bullFVG
+            box.new(bar_index - 2, curL, bar_index + 5, h2,   bgcolor = C_FVG_B, border_color = color.new(C_BLUE,70))
+        if bearFVG
+            box.new(bar_index - 2, l2,   bar_index + 5, curH, bgcolor = C_FVG_S, border_color = color.new(C_BEAR,70))
+
+if showSMC
+    drawFairValueGaps()
+
+// ══════════════════════════════════════════════════════
+//  EQH / EQL
+// ══════════════════════════════════════════════════════
+var float eqhLevel  = na
+var float eqlLevel  = na
+var line  eqhLine   = na
+var line  eqlLine   = na
+var label eqhLbl    = na
+var label eqlLbl    = na
+
+[eqhRaw, eqlRaw] = request.security(syminfo.tickerid, '',
+     [ta.highest(high, 50), ta.lowest(low, 50)],
+     lookahead = barmerge.lookahead_on)
+
+eqhLevel := eqhRaw
+eqlLevel := eqlRaw
+
+if showSMC and showEQHL and barstate.islast
+    // Verwijder vorige versie — voorkomt stapelen op elke tick
+    line.delete(eqhLine)
+    line.delete(eqlLine)
+    label.delete(eqhLbl)
+    label.delete(eqlLbl)
+    eqhLine := line.new(bar_index - 50, eqhLevel, bar_index + 10, eqhLevel,
+         color = color.new(C_NEUT,50), style = line.style_dotted, width = 1)
+    eqlLine := line.new(bar_index - 50, eqlLevel, bar_index + 10, eqlLevel,
+         color = color.new(C_NEUT,50), style = line.style_dotted, width = 1)
+    eqhLbl := label.new(bar_index + 10, eqhLevel, 'EQH',
+         color = #00000000, textcolor = color.new(C_NEUT,10),
+         style = label.style_label_left, size = lsz)
+    eqlLbl := label.new(bar_index + 10, eqlLevel, 'EQL',
+         color = #00000000, textcolor = color.new(C_NEUT,10),
+         style = label.style_label_left, size = lsz)
+
+// ══════════════════════════════════════════════════════
+//  SCALPER
+// ══════════════════════════════════════════════════════
+emaFast      = ta.ema(close, emaFastLen)
+emaSlow      = ta.ema(close, emaSlowLen)
+ema50        = ta.ema(close, 50)
+ema200       = ta.ema(close, 200)
+atrVal       = ta.atr(atrLen)
+volMA        = ta.sma(volume, volMaLen)
+aboveEma200  = close > ema200
+bullTrend    = emaFast > emaSlow
+bearTrend    = emaFast < emaSlow
+volOK        = volume > volMA
+crossedOver  = ta.crossover (close, emaFast)
+crossedUnder = ta.crossunder(close, emaFast)
+rawBuy       = bullTrend and crossedOver  and volOK
+rawSell      = bearTrend and crossedUnder and volOK
+
+var int lastSignalBar = -999
+cooldownOK = (bar_index - lastSignalBar) >= cooldownBars
+buySignal  = showScalper and rawBuy  and cooldownOK
+sellSignal = showScalper and rawSell and cooldownOK
+
+if buySignal or sellSignal
+    lastSignalBar := bar_index
+
+var float entryPrice = na
+var float slLevel    = na
+var float tp1Level   = na
+var float tp2Level   = na
+var bool  inTrade    = false
+var bool  isBuyTrade = false
+var float risk       = na
+
+if buySignal and not inTrade
+    entryPrice := close
+    slLevel    := close - atrVal * atrMult
+    risk       := entryPrice - slLevel
+    tp1Level   := entryPrice + risk
+    tp2Level   := entryPrice + 2.0 * risk
+    inTrade    := true
+    isBuyTrade := true
+
+if sellSignal and not inTrade
+    entryPrice := close
+    slLevel    := close + atrVal * atrMult
+    risk       := slLevel - entryPrice
+    tp1Level   := entryPrice - risk
+    tp2Level   := entryPrice - 2.0 * risk
+    inTrade    := true
+    isBuyTrade := false
+
+tp1Hit  = inTrade and     isBuyTrade and high >= tp1Level
+tp2Hit  = inTrade and     isBuyTrade and high >= tp2Level
+slHit   = inTrade and     isBuyTrade and low  <= slLevel
+tp1HitS = inTrade and not isBuyTrade and low  <= tp1Level
+tp2HitS = inTrade and not isBuyTrade and low  <= tp2Level
+slHitS  = inTrade and not isBuyTrade and high >= slLevel
+
+if tp1Hit or tp2Hit or slHit or tp1HitS or tp2HitS or slHitS
+    inTrade := false
+
+combinedBuy  = combinedMode ? (buySignal  and inDiscount) : buySignal
+combinedSell = combinedMode ? (sellSignal and inPremium)  : sellSignal
+
+// ══════════════════════════════════════════════════════
+//  EMA PLOTS
+// ══════════════════════════════════════════════════════
+plot(showEma200  ? ema200  : na, 'EMA 200', color = ema200Color,  linewidth = ema200Width)
+plot(showEma50   ? ema50   : na, 'EMA 50',  color = ema50Color,   linewidth = ema50Width)
+plot(showScalper ? emaSlow : na, 'EMA Slow',color = emaSlowColor, linewidth = emaSlowWidth)
+plot(showScalper ? emaFast : na, 'EMA Fast',color = emaFastColor, linewidth = emaFastWidth)
+
+// BUY/SELL labels
+if buySignal
+    label.new(bar_index, low - atrVal * 0.8, 'BUY',
+         color = color.new(#00c853,20), textcolor = color.new(#ffffff,0),
+         style = label.style_label_up, size = lsz)
+if sellSignal
+    label.new(bar_index, high + atrVal * 0.8, 'SELL',
+         color = color.new(#ef5350,20), textcolor = color.new(#ffffff,0),
+         style = label.style_label_down, size = lsz)
+
+plot(showScalper and inTrade ? slLevel  : na, 'SL',  color = C_BEAR,               linewidth = 1, style = plot.style_linebr)
+plot(showScalper and inTrade ? tp1Level : na, 'TP1', color = C_BULL,               linewidth = 1, style = plot.style_linebr)
+plot(showScalper and inTrade ? tp2Level : na, 'TP2', color = color.new(C_BULL,50), linewidth = 1, style = plot.style_linebr)
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════
+var table dash = table.new(position.top_right, 2, 15,
+     bgcolor      = color.new(#0d1117, 0),
+     border_color = color.new(#2a2a2a, 0),
+     border_width = 1,
+     frame_color  = color.new(#333333, 0),
+     frame_width  = 1)
+
+scalperStr =
+     buySignal  ? 'BUY'   :
+     sellSignal ? 'SELL'  :
+     inTrade    ? (isBuyTrade ? 'In Long' : 'In Short') : '-'
+scalperBg =
+     buySignal  ? D_BULL_BG :
+     sellSignal ? D_BEAR_BG :
+     inTrade    ? (isBuyTrade ? D_BULL_BG : D_BEAR_BG) : D_DARK_BG
+
+ema200Str = aboveEma200   ? 'Boven' : 'Onder'
+ema200Bg  = aboveEma200   ? D_BULL_BG : D_BEAR_BG
+ema50Bg   = close > ema50 ? D_BULL_BG : D_BEAR_BG
+smcBiasBg = smcBias_f > 0 ? D_BULL_BG : smcBias_f < 0 ? D_BEAR_BG : D_NEUT_BG
+zoneBg    = inDiscount    ? D_BULL_BG : inPremium ? D_BEAR_BG : D_NEUT_BG
+obBg      = obStr == 'Bullish OB' ? D_BULL_BG : obStr == 'Bearish OB' ? D_BEAR_BG : D_DARK_BG
+
+slStr  = inTrade and not na(slLevel)  ? str.tostring(slLevel,  '#.##') : '-'
+tp1Str = inTrade and not na(tp1Level) ? str.tostring(tp1Level, '#.##') : '-'
+tp2Str = inTrade and not na(tp2Level) ? str.tostring(tp2Level, '#.##') : '-'
+
+lbl(r, txt) =>
+    table.cell(dash, 0, r, txt, text_color = D_LGREY, bgcolor = D_DARK_BG, text_size = ds, text_halign = text.align_left)
+val(r, txt, bg) =>
+    table.cell(dash, 1, r, txt, text_color = D_WHITE,  bgcolor = bg,        text_size = ds, text_halign = text.align_right)
+div(r, txt, col) =>
+    table.cell(dash, 0, r, txt, text_color = col, bgcolor = D_DIV_BG, text_size = ds, text_halign = text.align_left)
+    table.merge_cells(dash, 0, r, 1, r)
+
+if barstate.islast
+    table.cell(dash, 0, 0, 'KENTO SUITE',
+         text_color = D_WHITE, bgcolor = color.new(#0a1628, 0),
+         text_size = ds, text_halign = text.align_center)
+    table.merge_cells(dash, 0, 0, 1, 0)
+
+    if dashOpen
+        if dashCompact
+            lbl(1, 'Bias')
+            val(1, smcBiasStr, smcBiasBg)
+            lbl(2, 'Zone')
+            val(2, zoneStr, zoneBg)
+            lbl(3, 'EMA 200')
+            val(3, ema200Str, ema200Bg)
+            lbl(4, 'Scalper')
+            val(4, scalperStr, scalperBg)
+        else
+            div(1, 'SMC', color.new(#64b5f6, 0))
+            lbl(2, 'Bias')
+            val(2, smcBiasStr, smcBiasBg)
+            lbl(3, 'Zone')
+            val(3, zoneStr, zoneBg)
+            lbl(4, 'OB')
+            val(4, obStr, obBg)
+            lbl(5, 'EQH')
+            val(5, not na(eqhLevel) ? str.tostring(eqhLevel, '#.##') : '-', D_NEUT_BG)
+            lbl(6, 'EQL')
+            val(6, not na(eqlLevel) ? str.tostring(eqlLevel, '#.##') : '-', D_NEUT_BG)
+            div(7, 'EMA Trend', color.new(#ffd54f, 0))
+            lbl(8, 'EMA 200')
+            val(8, ema200Str, ema200Bg)
+            lbl(9, 'EMA 50')
+            val(9, close > ema50 ? 'Boven' : 'Onder', ema50Bg)
+            div(10, 'Scalper', color.new(#26a69a, 0))
+            lbl(11, 'Signaal')
+            val(11, scalperStr, scalperBg)
+            lbl(12, 'SL')
+            val(12, slStr, inTrade ? D_BEAR_BG : D_DARK_BG)
+            lbl(13, 'TP1')
+            val(13, tp1Str, inTrade ? D_BULL_BG : D_DARK_BG)
+            lbl(14, 'TP2')
+            val(14, tp2Str, inTrade ? D_BULL_BG : D_DARK_BG)
+
+// ══════════════════════════════════════════════════════
+//  ALERTS
+// ══════════════════════════════════════════════════════
+alertcondition(bullBOS,                          'BOS Bullish',      'KENTO - BOS Bullish')
+alertcondition(bearBOS,                          'BOS Bearish',      'KENTO - BOS Bearish')
+alertcondition(bullCHoCH,                        'CHoCH Bullish',    'KENTO - CHoCH Bullish')
+alertcondition(bearCHoCH,                        'CHoCH Bearish',    'KENTO - CHoCH Bearish')
+alertcondition(inPremium  and not inPremium[1],  'Premium Entered',  'KENTO - Premium Zone')
+alertcondition(inDiscount and not inDiscount[1], 'Discount Entered', 'KENTO - Discount Zone')
+alertcondition(buySignal,                        'SCALPER LONG',     'KENTO - LONG signaal')
+alertcondition(sellSignal,                       'SCALPER SHORT',    'KENTO - SHORT signaal')
+alertcondition(tp1Hit,                           'TP1 Hit Long',     'KENTO - TP1 Long')
+alertcondition(tp2Hit,                           'TP2 Hit Long',     'KENTO - TP2 Long')
+alertcondition(slHit,                            'SL Hit Long',      'KENTO - SL Long')
+alertcondition(tp1HitS,                          'TP1 Hit Short',    'KENTO - TP1 Short')
+alertcondition(tp2HitS,                          'TP2 Hit Short',    'KENTO - TP2 Short')
+alertcondition(slHitS,                           'SL Hit Short',     'KENTO - SL Short')
+alertcondition(combinedBuy,                      'Combined LONG',    'KENTO - Combined LONG')
+alertcondition(combinedSell,                     'Combined SHORT',   'KENTO - Combined SHORT')

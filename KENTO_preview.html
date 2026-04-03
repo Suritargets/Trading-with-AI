@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<title>ST-Trading-EDU v1 — Chart Preview</title>
+<style>
+  body { margin: 0; background: #0d1117; display: flex; flex-direction: column; align-items: center; padding: 24px; font-family: 'Segoe UI', sans-serif; }
+  h2 { color: #2196F3; margin-bottom: 6px; font-size: 18px; }
+  p  { color: #8b949e; font-size: 12px; margin-bottom: 16px; }
+  .chart-wrap { border: 1px solid #30363d; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); }
+</style>
+</head>
+<body>
+<h2>ST-Trading-EDU v1 — Chart Voorbeeld</h2>
+<p>Fibonacci levels, Buy/Sell zones, SMC structuur, Scalper signalen & Dashboard</p>
+<div class="chart-wrap">
+<svg viewBox="0 0 980 560" width="980" height="560" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="980" height="560" fill="#131722"/>
+
+  <!-- Grid lines -->
+  <line x1="0" y1="80"  x2="980" y2="80"  stroke="#1e222d" stroke-width="1"/>
+  <line x1="0" y1="160" x2="980" y2="160" stroke="#1e222d" stroke-width="1"/>
+  <line x1="0" y1="240" x2="980" y2="240" stroke="#1e222d" stroke-width="1"/>
+  <line x1="0" y1="320" x2="980" y2="320" stroke="#1e222d" stroke-width="1"/>
+  <line x1="0" y1="400" x2="980" y2="400" stroke="#1e222d" stroke-width="1"/>
+  <line x1="0" y1="480" x2="980" y2="480" stroke="#1e222d" stroke-width="1"/>
+  <line x1="120" y1="0" x2="120" y2="560" stroke="#1e222d" stroke-width="1"/>
+  <line x1="260" y1="0" x2="260" y2="560" stroke="#1e222d" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="560" stroke="#1e222d" stroke-width="1"/>
+  <line x1="540" y1="0" x2="540" y2="560" stroke="#1e222d" stroke-width="1"/>
+  <line x1="680" y1="0" x2="680" y2="560" stroke="#1e222d" stroke-width="1"/>
+  <line x1="820" y1="0" x2="820" y2="560" stroke="#1e222d" stroke-width="1"/>
+
+  <!-- ═══ PREMIUM ZONE (top half) ═══ -->
+  <rect x="30" y="45" width="720" height="200" fill="rgba(239,83,80,0.04)"/>
+  <text x="38" y="62" fill="#ef535066" font-size="10" font-weight="600">PREMIUM ZONE</text>
+
+  <!-- ═══ DISCOUNT ZONE (bottom half) ═══ -->
+  <rect x="30" y="245" width="720" height="210" fill="rgba(38,166,154,0.04)"/>
+  <text x="38" y="445" fill="#26a69a66" font-size="10" font-weight="600">DISCOUNT ZONE</text>
+
+  <!-- ═══ FIBONACCI LINES ═══ -->
+  <!-- 0.0 top -->
+  <line x1="30" y1="45" x2="760" y2="45" stroke="#ffc107" stroke-width="1.2" opacity="0.7"/>
+  <text x="764" y="49" fill="#ffc107" font-size="9.5">0.0</text>
+
+  <!-- 0.236 -->
+  <line x1="30" y1="115" x2="760" y2="115" stroke="#ef5350" stroke-width="1" stroke-dasharray="5,3" opacity="0.75"/>
+  <text x="764" y="119" fill="#ef5350" font-size="9.5">0.236</text>
+
+  <!-- 0.382 — top of Sell Zone -->
+  <line x1="30" y1="175" x2="760" y2="175" stroke="#ef5350" stroke-width="1" stroke-dasharray="5,3" opacity="0.9"/>
+  <text x="764" y="179" fill="#ef5350" font-size="9.5">0.382</text>
+
+  <!-- 0.500 mid -->
+  <line x1="30" y1="245" x2="760" y2="245" stroke="#ffc107" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.8"/>
+  <text x="764" y="249" fill="#ffc107" font-size="9.5">0.500</text>
+
+  <!-- 0.618 Golden — top of Buy Zone -->
+  <line x1="30" y1="315" x2="760" y2="315" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.9"/>
+  <text x="764" y="319" fill="#26a69a" font-size="9.5" font-weight="700">0.618★</text>
+
+  <!-- 0.786 bottom of Buy Zone -->
+  <line x1="30" y1="385" x2="760" y2="385" stroke="#26a69a" stroke-width="1" stroke-dasharray="5,3" opacity="0.75"/>
+  <text x="764" y="389" fill="#26a69a" font-size="9.5">0.786</text>
+
+  <!-- 1.0 bottom -->
+  <line x1="30" y1="455" x2="760" y2="455" stroke="#ffc107" stroke-width="1.2" opacity="0.7"/>
+  <text x="764" y="459" fill="#ffc107" font-size="9.5">1.0</text>
+
+  <!-- ═══ SELL ZONE BOX (0.236–0.382) ═══ -->
+  <rect x="30" y="115" width="730" height="60" fill="rgba(239,83,80,0.12)" stroke="#ef535055" stroke-width="1"/>
+  <text x="42" y="130" fill="#ef5350" font-size="9" font-weight="700" opacity="0.9">🔴 SELL ZONE (0.236 – 0.382)</text>
+
+  <!-- ═══ BUY ZONE BOX (0.618–0.786) ═══ -->
+  <rect x="30" y="315" width="730" height="70" fill="rgba(38,166,154,0.13)" stroke="#26a69a55" stroke-width="1"/>
+  <text x="42" y="332" fill="#26a69a" font-size="9" font-weight="700" opacity="0.9">🟢 BUY ZONE (0.618 – 0.786)</text>
+
+  <!-- ═══ ORDER BLOCK boxes ═══ -->
+  <!-- Bullish OB -->
+  <rect x="155" y="380" width="55" height="25" fill="rgba(38,166,154,0.2)" stroke="#26a69a" stroke-width="1"/>
+  <text x="182" y="396" fill="#26a69a" font-size="8" text-anchor="middle">Bullish OB</text>
+  <!-- Bearish OB -->
+  <rect x="490" y="120" width="55" height="22" fill="rgba(239,83,80,0.2)" stroke="#ef5350" stroke-width="1"/>
+  <text x="517" y="134" fill="#ef5350" font-size="8" text-anchor="middle">Bearish OB</text>
+
+  <!-- ═══ FAIR VALUE GAP ═══ -->
+  <rect x="335" y="255" width="60" height="18" fill="rgba(33,150,243,0.18)" stroke="#2196F355" stroke-width="1"/>
+  <text x="365" y="267" fill="#2196F3" font-size="7.5" text-anchor="middle">FVG</text>
+
+  <!-- ═══ CANDLES ═══ -->
+  <!-- Bear candles going down -->
+  <line x1="55"  y1="95"  x2="55"  y2="210" stroke="#ef5350" stroke-width="1"/>
+  <rect x="49"  y="120" width="12" height="55" fill="#ef5350"/>
+
+  <line x1="75"  y1="130" x2="75"  y2="230" stroke="#ef5350" stroke-width="1"/>
+  <rect x="69"  y="150" width="12" height="60" fill="#ef5350"/>
+
+  <line x1="95"  y1="155" x2="95"  y2="250" stroke="#ef5350" stroke-width="1"/>
+  <rect x="89"  y="175" width="12" height="55" fill="#ef5350"/>
+
+  <!-- CHoCH label -->
+  <rect x="78" y="235" width="44" height="14" rx="3" fill="rgba(255,193,7,0.15)" stroke="#ffc107" stroke-width="1"/>
+  <text x="100" y="245" fill="#ffc107" font-size="8.5" text-anchor="middle" font-weight="bold">CHoCH</text>
+  <line x1="100" y1="233" x2="100" y2="210" stroke="#ffc107" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+  <!-- Bull candles (bounce from Buy Zone) -->
+  <line x1="118" y1="340" x2="118" y2="425" stroke="#26a69a" stroke-width="1"/>
+  <rect x="112" y="360" width="12" height="50" fill="#26a69a"/>
+
+  <line x1="138" y1="320" x2="138" y2="390" stroke="#26a69a" stroke-width="1"/>
+  <rect x="132" y="335" width="12" height="42" fill="#26a69a"/>
+
+  <!-- BUY signal label -->
+  <polygon points="138,407 148,407 143,396" fill="#26a69a"/>
+  <rect x="121" y="410" width="44" height="14" rx="3" fill="rgba(38,166,154,0.2)" stroke="#26a69a" stroke-width="1"/>
+  <text x="143" y="420" fill="#26a69a" font-size="8.5" text-anchor="middle" font-weight="bold">▲ BUY</text>
+
+  <!-- More bull candles -->
+  <line x1="158" y1="300" x2="158" y2="365" stroke="#26a69a" stroke-width="1"/>
+  <rect x="152" y="312" width="12" height="38" fill="#26a69a"/>
+
+  <line x1="178" y1="270" x2="178" y2="335" stroke="#26a69a" stroke-width="1"/>
+  <rect x="172" y="283" width="12" height="36" fill="#26a69a"/>
+
+  <line x1="198" y1="248" x2="198" y2="310" stroke="#26a69a" stroke-width="1"/>
+  <rect x="192" y="260" width="12" height="33" fill="#26a69a"/>
+
+  <!-- BOS label -->
+  <rect x="181" y="236" width="32" height="14" rx="3" fill="rgba(33,150,243,0.15)" stroke="#2196F3" stroke-width="1"/>
+  <text x="197" y="246" fill="#2196F3" font-size="8.5" text-anchor="middle" font-weight="bold">BOS</text>
+  <line x1="197" y1="234" x2="197" y2="212" stroke="#2196F3" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+  <!-- Consolidation + more up -->
+  <line x1="218" y1="230" x2="218" y2="290" stroke="#26a69a" stroke-width="1"/>
+  <rect x="212" y="242" width="12" height="32" fill="#26a69a"/>
+
+  <line x1="238" y1="215" x2="238" y2="268" stroke="#26a69a" stroke-width="1"/>
+  <rect x="232" y="226" width="12" height="28" fill="#26a69a"/>
+
+  <!-- Sell zone reaction -->
+  <line x1="258" y1="125" x2="258" y2="218" stroke="#ef5350" stroke-width="1"/>
+  <rect x="252" y="138" width="12" height="58" fill="#ef5350"/>
+
+  <!-- SELL signal label -->
+  <polygon points="258,108 268,108 263,118" fill="#ef5350"/>
+  <rect x="241" y="94" width="44" height="14" rx="3" fill="rgba(239,83,80,0.2)" stroke="#ef5350" stroke-width="1"/>
+  <text x="263" y="104" fill="#ef5350" font-size="8.5" text-anchor="middle" font-weight="bold">▼ SELL</text>
+
+  <line x1="278" y1="140" x2="278" y2="220" stroke="#ef5350" stroke-width="1"/>
+  <rect x="272" y="152" width="12" height="52" fill="#ef5350"/>
+
+  <line x1="298" y1="158" x2="298" y2="245" stroke="#ef5350" stroke-width="1"/>
+  <rect x="292" y="170" width="12" height="58" fill="#ef5350"/>
+
+  <!-- FVG zone area -->
+  <line x1="318" y1="245" x2="318" y2="320" stroke="#ef5350" stroke-width="1"/>
+  <rect x="312" y="258" width="12" height="42" fill="#ef5350"/>
+
+  <line x1="338" y1="252" x2="338" y2="315" stroke="#26a69a" stroke-width="1"/>
+  <rect x="332" y="263" width="12" height="36" fill="#26a69a"/>
+
+  <!-- More candles -->
+  <line x1="358" y1="238" x2="358" y2="295" stroke="#26a69a" stroke-width="1"/>
+  <rect x="352" y="250" width="12" height="30" fill="#26a69a"/>
+
+  <line x1="378" y1="222" x2="378" y2="278" stroke="#26a69a" stroke-width="1"/>
+  <rect x="372" y="234" width="12" height="28" fill="#26a69a"/>
+
+  <line x1="398" y1="210" x2="398" y2="265" stroke="#26a69a" stroke-width="1"/>
+  <rect x="392" y="222" width="12" height="26" fill="#26a69a"/>
+
+  <line x1="418" y1="198" x2="418" y2="252" stroke="#26a69a" stroke-width="1"/>
+  <rect x="412" y="210" width="12" height="24" fill="#26a69a"/>
+
+  <line x1="438" y1="185" x2="438" y2="240" stroke="#26a69a" stroke-width="1"/>
+  <rect x="432" y="196" width="12" height="28" fill="#26a69a"/>
+
+  <!-- Pullback to 0.618 again -->
+  <line x1="458" y1="295" x2="458" y2="340" stroke="#ef5350" stroke-width="1"/>
+  <rect x="452" y="305" width="12" height="28" fill="#ef5350"/>
+
+  <line x1="478" y1="310" x2="478" y2="362" stroke="#ef5350" stroke-width="1"/>
+  <rect x="472" y="320" width="12" height="30" fill="#ef5350"/>
+
+  <!-- BUY signal at 0.618 again -->
+  <polygon points="492,380 502,380 497,368" fill="#26a69a"/>
+  <rect x="475" y="383" width="44" height="14" rx="3" fill="rgba(38,166,154,0.2)" stroke="#26a69a" stroke-width="1"/>
+  <text x="497" y="393" fill="#26a69a" font-size="8.5" text-anchor="middle" font-weight="bold">▲ BUY</text>
+
+  <line x1="498" y1="318" x2="498" y2="365" stroke="#26a69a" stroke-width="1"/>
+  <rect x="492" y="330" width="12" height="24" fill="#26a69a"/>
+
+  <line x1="518" y1="298" x2="518" y2="345" stroke="#26a69a" stroke-width="1"/>
+  <rect x="512" y="310" width="12" height="22" fill="#26a69a"/>
+
+  <line x1="538" y1="278" x2="538" y2="325" stroke="#26a69a" stroke-width="1"/>
+  <rect x="532" y="288" width="12" height="24" fill="#26a69a"/>
+
+  <line x1="558" y1="260" x2="558" y2="308" stroke="#26a69a" stroke-width="1"/>
+  <rect x="552" y="270" width="12" height="26" fill="#26a69a"/>
+
+  <line x1="578" y1="242" x2="578" y2="292" stroke="#26a69a" stroke-width="1"/>
+  <rect x="572" y="254" width="12" height="22" fill="#26a69a"/>
+
+  <line x1="598" y1="228" x2="598" y2="278" stroke="#26a69a" stroke-width="1"/>
+  <rect x="592" y="238" width="12" height="24" fill="#26a69a"/>
+
+  <!-- Final few candles near top -->
+  <line x1="618" y1="150" x2="618" y2="228" stroke="#ef5350" stroke-width="1"/>
+  <rect x="612" y="162" width="12" height="48" fill="#ef5350"/>
+
+  <line x1="638" y1="162" x2="638" y2="240" stroke="#ef5350" stroke-width="1"/>
+  <rect x="632" y="174" width="12" height="50" fill="#ef5350"/>
+
+  <line x1="658" y1="172" x2="658" y2="250" stroke="#26a69a" stroke-width="1"/>
+  <rect x="652" y="185" width="12" height="48" fill="#26a69a"/>
+
+  <line x1="678" y1="162" x2="678" y2="238" stroke="#26a69a" stroke-width="1"/>
+  <rect x="672" y="174" width="12" height="44" fill="#26a69a"/>
+
+  <line x1="698" y1="150" x2="698" y2="222" stroke="#26a69a" stroke-width="1"/>
+  <rect x="692" y="162" width="12" height="40" fill="#26a69a"/>
+
+  <line x1="718" y1="140" x2="718" y2="210" stroke="#26a69a" stroke-width="1"/>
+  <rect x="712" y="152" width="12" height="38" fill="#26a69a"/>
+
+  <!-- ═══ SL / TP LINES (current trade) ═══ -->
+  <line x1="492" y1="420" x2="760" y2="420" stroke="#ef5350" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="762" y="424" fill="#ef5350" font-size="9">SL</text>
+  <line x1="492" y1="340" x2="760" y2="340" stroke="#26a69a" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="762" y="344" fill="#26a69a" font-size="9">TP1</text>
+  <line x1="492" y1="262" x2="760" y2="262" stroke="#26a69a" stroke-width="1" stroke-dasharray="3,4" opacity="0.7"/>
+  <text x="762" y="266" fill="#26a69a" font-size="9" opacity="0.7">TP2</text>
+
+  <!-- ═══ EMA LINES ═══ -->
+  <polyline points="30,440 55,390 75,360 95,342 118,338 138,325 158,308 178,288 198,270 218,258 238,248 258,260 278,272 298,282 318,278 338,268 358,258 378,248 398,238 418,228 438,218 458,240 478,258 498,268 518,258 538,248 558,238 578,228 598,218 618,230 638,242 658,238 678,228 698,218 718,210 738,200"
+        fill="none" stroke="#26a69a" stroke-width="1.5" opacity="0.8"/>
+  <text x="740" y="198" fill="#26a69a" font-size="8.5">EMA 9</text>
+
+  <polyline points="30,450 55,420 75,400 95,378 118,355 138,338 158,318 178,300 198,282 218,268 238,255 258,265 278,278 298,290 318,286 338,275 358,264 378,252 398,242 418,232 438,224 458,245 478,262 498,270 518,262 538,254 558,244 578,235 598,226 618,238 638,248 658,245 678,236 698,228 718,220 738,212"
+        fill="none" stroke="#ef5350" stroke-width="1.5" opacity="0.8"/>
+  <text x="740" y="210" fill="#ef5350" font-size="8.5">EMA 21</text>
+
+  <!-- ═══ EQH / EQL LINES ═══ -->
+  <line x1="30" y1="50"  x2="760" y2="50"  stroke="#ffc107" stroke-width="1" stroke-dasharray="3,5" opacity="0.5"/>
+  <text x="762" y="54"  fill="#ffc107" font-size="9" opacity="0.7">EQH</text>
+  <line x1="30" y1="450" x2="760" y2="450" stroke="#ffc107" stroke-width="1" stroke-dasharray="3,5" opacity="0.5"/>
+  <text x="762" y="454" fill="#ffc107" font-size="9" opacity="0.7">EQL</text>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <rect x="820" y="20" width="148" height="290" rx="6" fill="rgba(19,23,34,0.92)" stroke="#2196F3" stroke-width="1" opacity="0.95"/>
+  <!-- header -->
+  <rect x="820" y="20" width="148" height="26" rx="6" fill="rgba(26,39,68,0.9)"/>
+  <rect x="820" y="36" width="148" height="10" fill="rgba(26,39,68,0.9)"/>
+  <text x="894" y="37" fill="#2196F3" font-size="10" font-weight="700" text-anchor="middle">ST-Trading-EDU v1 ▲</text>
+  <!-- rows -->
+  <rect x="820" y="46" width="148" height="1" fill="#2196F333"/>
+
+  <text x="828" y="60"  fill="#8b949e" font-size="9">Mode</text>
+  <text x="962" y="60"  fill="#2196F3" font-size="9" text-anchor="end">Combined</text>
+  <rect x="820" y="63" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="77"  fill="#8b949e" font-size="9">SMC Bias</text>
+  <text x="962" y="77"  fill="#26a69a" font-size="9" text-anchor="end">BULLISH ▲</text>
+  <rect x="820" y="80" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="94"  fill="#8b949e" font-size="9">Zone</text>
+  <text x="962" y="94"  fill="#26a69a" font-size="9" text-anchor="end">Discount ▼</text>
+  <rect x="820" y="97" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="111" fill="#8b949e" font-size="9">EQH</text>
+  <text x="962" y="111" fill="#ffc107" font-size="9" text-anchor="end">1.09540</text>
+  <rect x="820" y="114" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="128" fill="#8b949e" font-size="9">EQL</text>
+  <text x="962" y="128" fill="#ffc107" font-size="9" text-anchor="end">1.08780</text>
+  <rect x="820" y="131" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="145" fill="#8b949e" font-size="9">OB</text>
+  <text x="962" y="145" fill="#26a69a" font-size="9" text-anchor="end">Bullish OB</text>
+  <rect x="820" y="148" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="162" fill="#8b949e" font-size="9">Scalper</text>
+  <text x="962" y="162" fill="#26a69a" font-size="9" text-anchor="end">BUY ▲</text>
+  <rect x="820" y="165" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="179" fill="#8b949e" font-size="9">SL</text>
+  <text x="962" y="179" fill="#ef5350" font-size="9" text-anchor="end">1.08920</text>
+  <rect x="820" y="182" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="196" fill="#8b949e" font-size="9">TP1</text>
+  <text x="962" y="196" fill="#26a69a" font-size="9" text-anchor="end">1.09180</text>
+  <rect x="820" y="199" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="213" fill="#8b949e" font-size="9">TP2</text>
+  <text x="962" y="213" fill="#26a69a" font-size="9" text-anchor="end">1.09440</text>
+  <rect x="820" y="216" width="148" height="1" fill="#2196F333"/>
+
+  <!-- Fib divider -->
+  <rect x="820" y="216" width="148" height="18" fill="rgba(26,31,46,0.8)"/>
+  <text x="894" y="228" fill="#ffc107" font-size="9" font-weight="600" text-anchor="middle">── Fibonacci ──</text>
+  <rect x="820" y="234" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="248" fill="#8b949e" font-size="9">Fib Level</text>
+  <text x="962" y="248" fill="#ffc107" font-size="9" text-anchor="end">0.618 ★</text>
+  <rect x="820" y="251" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="265" fill="#8b949e" font-size="9">Fib Zone</text>
+  <text x="962" y="265" fill="#26a69a" font-size="9" text-anchor="end">🟢 BUY ZONE</text>
+  <rect x="820" y="268" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="282" fill="#8b949e" font-size="9">0.618</text>
+  <text x="962" y="282" fill="#26a69a" font-size="9" text-anchor="end">1.09020</text>
+  <rect x="820" y="285" width="148" height="1" fill="#1e222d"/>
+
+  <text x="828" y="299" fill="#8b949e" font-size="9">Trend</text>
+  <text x="962" y="299" fill="#26a69a" font-size="9" text-anchor="end">Bull ▲</text>
+  <rect x="820" y="302" width="148" height="6" rx="0" fill="rgba(26,39,68,0.5)"/>
+
+  <!-- ═══ LEGEND BOX ═══ -->
+  <rect x="820" y="340" width="148" height="196" rx="6" fill="rgba(19,23,34,0.88)" stroke="#30363d" stroke-width="1"/>
+  <text x="894" y="358" fill="#8b949e" font-size="9" font-weight="600" text-anchor="middle">LEGENDA</text>
+  <rect x="820" y="362" width="148" height="1" fill="#30363d"/>
+
+  <rect x="830" y="371" width="10" height="10" fill="rgba(38,166,154,0.25)" stroke="#26a69a" stroke-width="1"/>
+  <text x="846" y="381" fill="#8b949e" font-size="9">Bullish OB</text>
+
+  <rect x="830" y="389" width="10" height="10" fill="rgba(239,83,80,0.25)" stroke="#ef5350" stroke-width="1"/>
+  <text x="846" y="399" fill="#8b949e" font-size="9">Bearish OB</text>
+
+  <rect x="830" y="407" width="10" height="10" fill="rgba(38,166,154,0.13)" stroke="#26a69a55" stroke-width="1"/>
+  <text x="846" y="417" fill="#8b949e" font-size="9">Buy Zone (Fib)</text>
+
+  <rect x="830" y="425" width="10" height="10" fill="rgba(239,83,80,0.12)" stroke="#ef535055" stroke-width="1"/>
+  <text x="846" y="435" fill="#8b949e" font-size="9">Sell Zone (Fib)</text>
+
+  <line x1="830" y1="449" x2="840" y2="449" stroke="#ffc107" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="846" y="453" fill="#8b949e" font-size="9">0.500 / EQH / EQL</text>
+
+  <line x1="830" y1="464" x2="840" y2="464" stroke="#26a69a" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="846" y="468" fill="#8b949e" font-size="9">0.618 Golden Ratio</text>
+
+  <line x1="830" y1="479" x2="840" y2="479" stroke="#26a69a" stroke-width="1.5"/>
+  <text x="846" y="483" fill="#8b949e" font-size="9">EMA 9 (Fast)</text>
+
+  <line x1="830" y1="494" x2="840" y2="494" stroke="#ef5350" stroke-width="1.5"/>
+  <text x="846" y="498" fill="#8b949e" font-size="9">EMA 21 (Slow)</text>
+
+  <line x1="830" y1="509" x2="840" y2="509" stroke="#2196F3" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="846" y="513" fill="#8b949e" font-size="9">TP / SL levels</text>
+
+  <!-- ═══ TITLE BAR ═══ -->
+  <rect x="0" y="0" width="980" height="20" fill="rgba(13,17,23,0.95)"/>
+  <text x="10" y="14" fill="#2196F3" font-size="10" font-weight="700">ST-Trading-EDU v1</text>
+  <text x="105" y="14" fill="#8b949e" font-size="9">EurUsd · 5m · Combined Mode</text>
+  <text x="780" y="14" fill="#26a69a" font-size="9">▲ +0.0024 (+0.22%)</text>
+  <text x="880" y="14" fill="#8b949e" font-size="9">1.09142</text>
+</svg>
+</div>
+<p style="margin-top:12px;color:#6e7681;font-size:11px">Dit is een visueel voorbeeld — exacte levels veranderen per chart en timeframe</p>
+</body>
+</html>

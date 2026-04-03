@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ST-Trading-EDU — Admin</title>
+<script src="kento_users.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;-webkit-user-select:none;user-select:none}
+a{color:inherit;text-decoration:none}
+
+/* ── Login ── */
+#adm-login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{background:#161b22;border:1px solid #21262d;border-radius:18px;padding:44px 48px;width:100%;max-width:400px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.8)}
+.logo-box{width:52px;height:52px;background:linear-gradient(135deg,#ff6b35,#ffc107);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#000;margin:0 auto 18px}
+
+/* ── Layout ── */
+#adm-app{display:none;min-height:100vh;flex-direction:column}
+.adm-topbar{background:#161b22;border-bottom:1px solid #21262d;padding:0 24px;height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.adm-topbar h1{font-size:15px;font-weight:800}
+.adm-topbar p{font-size:11px;color:#8b949e}
+.adm-nav{display:flex;gap:4px;margin-left:auto}
+/* ── Toggle Switch ── */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #21262d}
+.tog-row:last-child{border-bottom:none}
+.tog-label{font-size:13px;color:#e6edf3;display:flex;align-items:center;gap:8px}
+.tog-label small{font-size:11px;color:#8b949e}
+.tog-switch{position:relative;width:38px;height:22px;flex-shrink:0}
+.tog-switch input{opacity:0;width:0;height:0}
+.tog-slider{position:absolute;inset:0;background:#30363d;border-radius:22px;cursor:pointer;transition:.25s}
+.tog-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#8b949e;border-radius:50%;transition:.25s}
+.tog-switch input:checked + .tog-slider{background:#2196F3}
+.tog-switch input:checked + .tog-slider:before{transform:translateX(16px);background:#fff}
+.tog-group-hd{font-size:11px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;margin-top:8px}
+.adm-nav-btn{background:transparent;border:1px solid transparent;border-radius:7px;padding:6px 14px;color:#8b949e;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
+.adm-nav-btn:hover{border-color:#30363d;color:#e6edf3}
+.adm-nav-btn.active{background:#21262d;border-color:#30363d;color:#e6edf3}
+.adm-nav-btn.danger{color:#f85149}
+.adm-nav-btn.danger:hover{border-color:#f85149;background:#f8514911}
+
+.adm-body{padding:24px;max-width:1100px;margin:0 auto;width:100%}
+
+/* ── Section ── */
+.adm-section{display:none}
+.adm-section.show{display:block}
+.adm-section-title{font-size:13px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+
+/* ── Cards / grid ── */
+.adm-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px 22px;margin-bottom:14px}
+.adm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.adm-grid2{grid-template-columns:1fr}}
+
+/* ── Inputs ── */
+.f-row{margin-bottom:12px}
+.f-row label{font-size:11px;color:#8b949e;display:block;margin-bottom:5px}
+.f-input,.f-select{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 14px;color:#e6edf3;font-size:13px;outline:none;transition:border-color .2s}
+.f-input:focus,.f-select:focus{border-color:#ff6b35}
+.f-input::placeholder{color:#484f58}
+
+/* ── Buttons ── */
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{opacity:.88}
+.btn.primary{background:linear-gradient(135deg,#ff6b35,#ffc107);color:#000}
+.btn.success{background:#238636;color:#fff}
+.btn.danger{background:#da3633;color:#fff}
+.btn.gray{background:#21262d;border:1px solid #30363d;color:#e6edf3}
+.btn.sm{padding:6px 12px;font-size:11px;border-radius:6px}
+.btn.full{width:100%}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* ── Status messages ── */
+.msg-ok {color:#3fb950;font-size:12px;margin-top:8px}
+.msg-err{color:#f85149;font-size:12px;margin-top:8px}
+
+/* ── Users table ── */
+.users-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.users-toolbar input{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:8px 14px;color:#e6edf3;font-size:12px;outline:none;flex:1;min-width:160px}
+.users-toolbar input:focus{border-color:#ff6b35}
+.users-count{font-size:11px;color:#8b949e;margin-left:auto}
+
+.users-table{width:100%;border-collapse:collapse}
+.users-table th{font-size:10px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.4px;padding:8px 12px;text-align:left;border-bottom:1px solid #21262d}
+.users-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid #161b22;vertical-align:middle}
+.users-table tr:hover td{background:#161b22}
+.users-table tr:last-child td{border-bottom:none}
+
+.pkg-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.3px}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-active{background:#3fb950}
+.dot-suspended{background:#f85149}
+.dot-inactive{background:#6e7681}
+
+.act-btn{background:transparent;border:1px solid #30363d;border-radius:5px;padding:3px 9px;color:#8b949e;cursor:pointer;font-size:10px;margin-left:3px;transition:all .15s}
+.act-btn:hover{border-color:#e6edf3;color:#e6edf3}
+.act-btn.red:hover{border-color:#f85149;color:#f85149}
+.act-btn.green:hover{border-color:#3fb950;color:#3fb950}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal-box{background:#161b22;border:1px solid #21262d;border-radius:14px;padding:28px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,.8)}
+.modal-title{font-size:15px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+
+/* ── Stats ── */
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat-chip{background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:12px 18px;flex:1;min-width:110px}
+.stat-chip .sc-val{font-size:22px;font-weight:800;color:#e6edf3}
+.stat-chip .sc-lbl{font-size:10px;color:#8b949e;margin-top:2px}
+
+/* ── Strength bar ── */
+.pw-strength{height:3px;background:#21262d;border-radius:2px;margin-top:6px}
+.pw-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
+
+/* ── Session card ── */
+.session-pill{display:flex;align-items:center;gap:8px;background:#0d3320;border:1px solid #26a69a33;border-radius:8px;padding:10px 14px;font-size:12px;color:#26a69a;margin-bottom:10px}
+.session-pill.inactive{background:#21262d;border-color:#30363d;color:#8b949e}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════════ -->
+<div id="adm-login">
+  <div class="login-card">
+    <div class="logo-box">⚙️</div>
+    <div style="font-size:19px;font-weight:800;margin-bottom:4px">Admin Dashboard</div>
+    <div style="font-size:12px;color:#8b949e;margin-bottom:28px">ST-Trading-EDU — Beheer & Instellingen</div>
+    <div class="f-row">
+      <input class="f-input" type="password" id="adm-pw" placeholder="Admin wachtwoord"
+        onkeydown="if(event.key==='Enter')admLogin()" autocomplete="current-password"
+        style="text-align:center;letter-spacing:2px;font-size:16px">
+    </div>
+    <div class="msg-err" id="adm-login-err" style="text-align:center;margin-bottom:10px"></div>
+    <button class="btn primary full" onclick="admLogin()">🔓 Inloggen als Admin</button>
+    <button class="btn gray full" onclick="window.location.href='KENTO_SUITE_App.html'" style="margin-top:8px">← Terug naar app</button>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════════════════ -->
+<div id="adm-app">
+
+  <!-- Topbar -->
+  <div class="adm-topbar">
+    <div class="logo-box" style="width:32px;height:32px;font-size:14px;margin:0">⚙️</div>
+    <div>
+      <div class="adm-topbar" style="padding:0;height:auto;border:none">
+        <h1>Admin Dashboard</h1>
+        <p style="margin-left:8px">ST-Trading-EDU v1</p>
+      </div>
+    </div>
+    <div class="adm-nav">
+      <button class="adm-nav-btn active" onclick="admShowSection('users')" id="nav-users">👥 Gebruikers</button>
+      <button class="adm-nav-btn" onclick="admShowSection('modules')" id="nav-modules">🧩 Modules</button>
+      <button class="adm-nav-btn" onclick="admShowSection('settings')" id="nav-settings">⚙️ Instellingen</button>
+      <button class="adm-nav-btn" onclick="window.location.href='KENTO_SUITE_App.html'" style="background:#21262d;border-color:#30363d;color:#e6edf3">🏠 Naar App</button>
+      <button class="adm-nav-btn danger" onclick="admLogout()">Uitloggen</button>
+    </div>
+  </div>
+
+  <div class="adm-body">
+
+    <!-- ══ USERS SECTION ══════════════════════════════════════════════════════ -->
+    <div class="adm-section show" id="sec-users">
+
+      <!-- Stats -->
+      <div class="stats-row" id="adm-stats-row"></div>
+
+      <!-- Toolbar -->
+      <div class="users-toolbar">
+        <input type="text" id="user-search" placeholder="🔍 Zoek gebruiker..." oninput="admRenderUsers()">
+        <button class="btn primary sm" onclick="admOpenAddModal()">+ Gebruiker toevoegen</button>
+        <span class="users-count" id="users-count"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="adm-card" style="padding:0;overflow:hidden">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Naam</th>
+              <th>Login / Email</th>
+              <th>Pakket</th>
+              <th>Rol</th>
+              <th>Status</th>
+              <th>Aangemaakt</th>
+              <th>Laatste login</th>
+              <th>Acties</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Export -->
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn gray sm" onclick="admExportUsers()">📋 Exporteer users.js</button>
+        <button class="btn gray sm" onclick="admImportModal()">📥 Importeer users.js</button>
+      </div>
+      <div class="msg-ok" id="export-ok"></div>
+    </div>
+
+    <!-- ══ SETTINGS SECTION ═══════════════════════════════════════════════════ -->
+    <!-- ══ MODULES SECTIE ══ -->
+    <div class="adm-section" id="sec-modules">
+      <div class="adm-card" style="max-width:700px">
+        <div class="adm-section-title">🧩 Navigatie Modules</div>
+        <p style="font-size:12px;color:#8b949e;margin-bottom:16px">Zet modules uit om ze te verbergen voor alle gebruikers in de app. Instellingen worden direct opgeslagen.</p>
+
+        <div class="tog-group-hd">📚 Leer Traden</div>
+        <div class="tog-row"><span class="tog-label">🎓 Trading Guide</span><label class="tog-switch"><input type="checkbox" id="mod-guide" onchange="admToggleMod('guide',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">🎬 Les Materiaal Video</span><label class="tog-switch"><input type="checkbox" id="mod-lesvideo" onchange="admToggleMod('lesvideo',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">✅ Mijn Voortgang <small>(Les Checklist)</small></span><label class="tog-switch"><input type="checkbox" id="mod-checklist" onchange="admToggleMod('checklist',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">📋 Trading Checklist</span><label class="tog-switch"><input type="checkbox" id="mod-tradecl" onchange="admToggleMod('tradecl',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">📊 Top 20 Patterns</span><label class="tog-switch"><input type="checkbox" id="mod-patterns" onchange="admToggleMod('patterns',this.checked)"><span class="tog-slider"></span></label></div>
+
+        <div class="tog-group-hd">📊 Smart Money & Strategie</div>
+        <div class="tog-row"><span class="tog-label">📊 SMC Overzicht</span><label class="tog-switch"><input type="checkbox" id="mod-smc" onchange="admToggleMod('smc',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">📈 Scalper Engine</span><label class="tog-switch"><input type="checkbox" id="mod-scalper" onchange="admToggleMod('scalper',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">⚡ Combined Mode</span><label class="tog-switch"><input type="checkbox" id="mod-combined" onchange="admToggleMod('combined',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">📐 FIB SUITE</span><label class="tog-switch"><input type="checkbox" id="mod-fib" onchange="admToggleMod('fib',this.checked)"><span class="tog-slider"></span></label></div>
+
+        <div class="tog-group-hd">💼 Trading Tools</div>
+        <div class="tog-row"><span class="tog-label">💰 Trade Management</span><label class="tog-switch"><input type="checkbox" id="mod-trade" onchange="admToggleMod('trade',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">🖥️ Dashboard</span><label class="tog-switch"><input type="checkbox" id="mod-dashboard" onchange="admToggleMod('dashboard',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">🔔 Alerts</span><label class="tog-switch"><input type="checkbox" id="mod-alerts" onchange="admToggleMod('alerts',this.checked)"><span class="tog-slider"></span></label></div>
+
+        <div class="tog-group-hd">🎬 Video Gids</div>
+        <div class="tog-row"><span class="tog-label">🎬 Video Gids (NL &amp; EN)</span><label class="tog-switch"><input type="checkbox" id="mod-videogids" onchange="admToggleMod('videogids',this.checked)"><span class="tog-slider"></span></label></div>
+
+        <div class="tog-group-hd">ℹ️ Informatie</div>
+        <div class="tog-row"><span class="tog-label">🏠 Home</span><label class="tog-switch"><input type="checkbox" id="mod-home" onchange="admToggleMod('home',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">⚙️ The 3 Modes</span><label class="tog-switch"><input type="checkbox" id="mod-modes" onchange="admToggleMod('modes',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">💡 Tips &amp; Tricks</span><label class="tog-switch"><input type="checkbox" id="mod-tips" onchange="admToggleMod('tips',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">📖 Glossary</span><label class="tog-switch"><input type="checkbox" id="mod-glossary" onchange="admToggleMod('glossary',this.checked)"><span class="tog-slider"></span></label></div>
+        <div class="tog-row"><span class="tog-label">🚀 Setup Guide</span><label class="tog-switch"><input type="checkbox" id="mod-setup" onchange="admToggleMod('setup',this.checked)"><span class="tog-slider"></span></label></div>
+
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn primary sm" onclick="admEnableAllMods()">✅ Alles aan</button>
+          <button class="btn gray sm" onclick="admDisableAllMods()">🚫 Alles uit</button>
+        </div>
+        <div class="msg-ok" id="mod-msg" style="display:none">✓ Opgeslagen</div>
+      </div>
+    </div>
+
+    <div class="adm-section" id="sec-settings">
+      <div class="adm-grid2">
+
+        <!-- Sessie status -->
+        <div class="adm-card">
+          <div class="adm-section-title">📊 App Sessie Status</div>
+          <div id="adm-session-status"></div>
+          <div style="font-size:11px;color:#8b949e;margin:8px 0 4px">Ingelogd om</div>
+          <div style="font-size:14px;font-weight:700" id="adm-login-time">—</div>
+          <div style="font-size:11px;color:#8b949e;margin:8px 0 4px">Verloopt om</div>
+          <div style="font-size:14px;font-weight:700" id="adm-expire-time">—</div>
+          <div class="btn-row">
+            <button class="btn danger sm" onclick="admForceLogout()">🔒 Forceer uitloggen</button>
+          </div>
+        </div>
+
+        <!-- Admin wachtwoord -->
+        <div class="adm-card">
+          <div class="adm-section-title">🔑 Admin Wachtwoord Wijzigen</div>
+          <div class="f-row">
+            <label>Nieuw wachtwoord</label>
+            <input class="f-input" type="password" id="adm-new-pw" placeholder="Minimaal 8 tekens" oninput="admCheckStrength()">
+            <div class="pw-strength"><div class="pw-strength-bar" id="adm-pw-bar"></div></div>
+          </div>
+          <div class="f-row">
+            <label>Bevestig wachtwoord</label>
+            <input class="f-input" type="password" id="adm-confirm-pw" placeholder="Herhaal wachtwoord">
+          </div>
+          <div class="msg-err" id="adm-pw-err"></div>
+          <div class="msg-ok"  id="adm-pw-ok"></div>
+          <button class="btn primary full" onclick="admChangePw()">💾 Wachtwoord opslaan</button>
+        </div>
+
+        <!-- Pakket info -->
+        <div class="adm-card adm-grid2" style="grid-column:1/-1;display:block">
+          <div class="adm-section-title">📦 Pakket Overzicht</div>
+          <div id="pkg-overview"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<!-- ══ ADD/EDIT USER MODAL ════════════════════════════════════════════════════ -->
+<div class="modal-bg" id="modal-user">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-user-title">+ Gebruiker toevoegen</div>
+
+    <div class="f-row">
+      <label>Naam *</label>
+      <input class="f-input" type="text" id="mu-name" placeholder="Volledige naam">
+    </div>
+    <div class="f-row">
+      <label>Login / Email *</label>
+      <input class="f-input" type="text" id="mu-email" placeholder="bijv. jan of jan@email.com">
+    </div>
+    <div class="f-row" id="mu-pw-row">
+      <label>Wachtwoord *</label>
+      <input class="f-input" type="password" id="mu-pw" placeholder="Minimaal 8 tekens">
+      <div class="pw-strength"><div class="pw-strength-bar" id="mu-pw-bar"></div></div>
+    </div>
+    <div class="f-row" id="mu-pw2-row">
+      <label>Bevestig wachtwoord *</label>
+      <input class="f-input" type="password" id="mu-pw2" placeholder="Herhaal wachtwoord">
+    </div>
+    <div class="adm-grid2">
+      <div class="f-row">
+        <label>Pakket</label>
+        <select class="f-select" id="mu-package">
+          <option value="maand1">📗 Maand 1 (2u sessie)</option>
+          <option value="maand2">📙 Maand 1+2 (2u sessie)</option>
+          <option value="maand3">📘 Maand 1+2+3 (2u sessie)</option>
+          <option value="full">🏆 Full — 3 Maanden (24u)</option>
+          <option value="admin">⚙️ Admin (24u + dashboard)</option>
+        </select>
+      </div>
+      <div class="f-row">
+        <label>Rol</label>
+        <select class="f-select" id="mu-role">
+          <option value="student">📚 Leerling</option>
+          <option value="trader">📈 Actieve Trader</option>
+          <option value="mentor">🎓 Mentor</option>
+          <option value="admin">⚙️ Beheerder</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row">
+      <label>Status</label>
+      <select class="f-select" id="mu-status">
+        <option value="active">✅ Actief</option>
+        <option value="suspended">🚫 Gesuspendeerd</option>
+      </select>
+    </div>
+    <div class="f-row">
+      <label>Notitie (optioneel)</label>
+      <input class="f-input" type="text" id="mu-note" placeholder="bijv. student batch 1">
+    </div>
+    <div class="msg-err" id="mu-err"></div>
+    <div class="btn-row">
+      <button class="btn primary" id="mu-save-btn" onclick="admSaveUser()">💾 Opslaan</button>
+      <button class="btn gray" onclick="admCloseModal('modal-user')">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IMPORT MODAL ═══════════════════════════════════════════════════════════ -->
+<div class="modal-bg" id="modal-import">
+  <div class="modal-box">
+    <div class="modal-title">📥 Importeer users.js</div>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:12px">Plak de inhoud van je kento_users.js bestand hieronder (alleen het JSON array gedeelte):</p>
+    <textarea id="import-ta" style="width:100%;height:140px;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#e6edf3;font-size:11px;font-family:monospace;resize:vertical;outline:none" placeholder='[{"id":"u_...","name":"...",...}]'></textarea>
+    <div class="msg-err" id="import-err"></div>
+    <div class="btn-row">
+      <button class="btn success" onclick="admDoImport()">📥 Importeren</button>
+      <button class="btn gray" onclick="admCloseModal('modal-import')">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM DELETE MODAL ═══════════════════════════════════════════════════ -->
+<div class="modal-bg" id="modal-delete">
+  <div class="modal-box" style="max-width:360px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">🗑️</div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:8px">Gebruiker verwijderen?</div>
+    <div style="font-size:13px;color:#8b949e;margin-bottom:20px" id="del-confirm-name">—</div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn danger" onclick="admConfirmDelete()">Ja, verwijder</button>
+      <button class="btn gray" onclick="admCloseModal('modal-delete')">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Auth
+// ─────────────────────────────────────────────────────────────────────────────
+var ADM_SESSION_KEY = 'kento_adm_session_v2';
+var _editingUserId  = null;
+var _deletingUserId = null;
+
+async function sha256(msg) {
+  var buf = new TextEncoder().encode(msg);
+  var hbuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hbuf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+function _admGetToken() {
+  try { var s = JSON.parse(localStorage.getItem(ADM_SESSION_KEY)||'null'); return s && s.token ? s.token : null; } catch(e){ return null; }
+}
+
+function _admHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _admGetToken() };
+}
+
+function _admIsLocalMode() {
+  return window.location.protocol === 'file:' || window.location.hostname === '';
+}
+
+async function admLogin() {
+  var pw  = document.getElementById('adm-pw').value;
+  var err = document.getElementById('adm-login-err');
+  if (!pw) { err.textContent = 'Voer een wachtwoord in.'; return; }
+  err.textContent = 'Controleren\u2026';
+
+  var h = await sha256(pw);
+
+  // ── Local file mode: check against KENTO_USERS ─────────────────────────
+  if (_admIsLocalMode()) {
+    var users = window.KENTO_USERS_DEFAULT || window.KENTO_USERS || [];
+    var adminUser = users.find(function(u){ return u.package === 'admin' && u.passwordHash === h; });
+    if (!adminUser) {
+      document.getElementById('adm-pw').value = '';
+      err.textContent = '\u274C Wachtwoord onjuist.';
+      return;
+    }
+    localStorage.setItem(ADM_SESSION_KEY, JSON.stringify({ token: 'local_adm_' + Date.now(), t: Date.now() }));
+    // Load users from KENTO_USERS for local mode
+    window.KENTO_USERS = users;
+    document.getElementById('adm-login').style.display = 'none';
+    document.getElementById('adm-app').style.display = 'flex';
+    admRefresh();
+    return;
+  }
+
+  // ── Server mode: call API ──────────────────────────────────────────────
+  try {
+    var res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin', passwordHash: h })
+    });
+    var data = await res.json();
+    if (!res.ok || data.user.package !== 'admin') {
+      document.getElementById('adm-pw').value = '';
+      err.textContent = '\u274C ' + (data.error || 'Geen admin-toegang.');
+      return;
+    }
+    localStorage.setItem(ADM_SESSION_KEY, JSON.stringify({ token: data.token, t: Date.now() }));
+    document.getElementById('adm-login').style.display = 'none';
+    document.getElementById('adm-app').style.display = 'flex';
+    admRefresh();
+  } catch(e) {
+    err.textContent = '\u274C Verbindingsfout. Controleer je internet.';
+  }
+}
+
+async function admLogout() {
+  var token = _admGetToken();
+  if (token) await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function(){});
+  localStorage.removeItem(ADM_SESSION_KEY);
+  document.getElementById('adm-app').style.display = 'none';
+  document.getElementById('adm-login').style.display = 'flex';
+  document.getElementById('adm-pw').value = '';
+  document.getElementById('adm-login-err').textContent = '';
+}
+
+async function admCheckSession() {
+  var token = _admGetToken();
+  if (!token) return false;
+  // Local file mode: check token age (24h)
+  if (_admIsLocalMode() || (token && token.indexOf('local_adm_') === 0)) {
+    try {
+      var s = JSON.parse(localStorage.getItem(ADM_SESSION_KEY)||'null');
+      if (!s || !s.t) return false;
+      return (Date.now() - s.t) < 24 * 3600 * 1000;
+    } catch(e) { return false; }
+  }
+  try {
+    var res = await fetch('/api/auth/session', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    return data.valid && data.user.package === 'admin';
+  } catch(e) { return false; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────────────────────────────────────
+function admShowSection(id) {
+  document.querySelectorAll('.adm-section').forEach(function(el){ el.classList.remove('show'); });
+  document.getElementById('sec-' + id).classList.add('show');
+  document.querySelectorAll('.adm-nav-btn:not(.danger)').forEach(function(b){ b.classList.remove('active'); });
+  var nb = document.getElementById('nav-' + id);
+  if (nb) nb.classList.add('active');
+  if (id === 'settings') admRefreshSettings();
+  if (id === 'modules')  admRenderModules();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module Visibility
+// ─────────────────────────────────────────────────────────────────────────────
+var MOD_ALL = ['home','modes','guide','lesvideo','checklist','tradecl','patterns',
+               'smc','scalper','combined','fib','trade','dashboard','alerts',
+               'tips','glossary','setup','videogids'];
+var _hiddenMods = [];
+
+async function admGetHiddenMods() {
+  if (_admIsLocalMode()) {
+    try { _hiddenMods = JSON.parse(localStorage.getItem('kento_hidden_modules') || '[]'); } catch(e) { _hiddenMods = []; }
+    return _hiddenMods;
+  }
+  try {
+    var res = await fetch('/api/modules');
+    var data = await res.json();
+    _hiddenMods = data.hiddenModules || [];
+  } catch(e) { _hiddenMods = []; }
+  return _hiddenMods;
+}
+
+async function admSaveHiddenMods(hidden) {
+  _hiddenMods = hidden;
+  localStorage.setItem('kento_hidden_modules', JSON.stringify(hidden));
+  if (!_admIsLocalMode()) {
+    try {
+      await fetch('/api/modules', {
+        method: 'POST',
+        headers: _admHeaders(),
+        body: JSON.stringify({ hiddenModules: hidden })
+      });
+    } catch(e) {}
+  }
+  var msg = document.getElementById('mod-msg');
+  if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display = 'none'; }, 1800); }
+}
+
+async function admToggleMod(modId, visible) {
+  var hidden = _hiddenMods.slice();
+  if (visible) {
+    hidden = hidden.filter(function(m){ return m !== modId; });
+  } else {
+    if (hidden.indexOf(modId) === -1) hidden.push(modId);
+  }
+  await admSaveHiddenMods(hidden);
+}
+
+async function admEnableAllMods() {
+  await admSaveHiddenMods([]);
+  admRenderModulesUI([]);
+}
+
+async function admDisableAllMods() {
+  var hidden = MOD_ALL.filter(function(m){ return m !== 'home'; });
+  await admSaveHiddenMods(hidden);
+  admRenderModulesUI(hidden);
+}
+
+async function admRenderModules() {
+  var hidden = await admGetHiddenMods();
+  admRenderModulesUI(hidden);
+}
+
+function admRenderModulesUI(hidden) {
+  MOD_ALL.forEach(function(modId) {
+    var el = document.getElementById('mod-' + modId);
+    if (el) el.checked = (hidden.indexOf(modId) === -1);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User Rendering — API-based
+// ─────────────────────────────────────────────────────────────────────────────
+async function admRefresh() {
+  if (!_admIsLocalMode()) {
+    try {
+      var res = await fetch('/api/users', { headers: _admHeaders() });
+      if (!res.ok) { if (res.status === 403) { admLogout(); return; } }
+      window.KENTO_USERS = await res.json();
+    } catch(e) { console.warn('Could not load users from API', e); }
+  } else {
+    // Local mode: KENTO_USERS already loaded from kento_users.js
+    if (!window.KENTO_USERS) {
+      window.KENTO_USERS = window.KENTO_USERS_DEFAULT || [];
+    }
+  }
+  admRenderStats();
+  admRenderUsers();
+}
+
+function admRenderStats() {
+  var users = window.KENTO_USERS || [];
+  var active = users.filter(function(u){ return u.status === 'active'; }).length;
+  var suspended = users.filter(function(u){ return u.status === 'suspended'; }).length;
+  var pkgs = {};
+  users.forEach(function(u){ pkgs[u.package] = (pkgs[u.package]||0)+1; });
+  var row = document.getElementById('adm-stats-row');
+  if (!row) return;
+  row.innerHTML =
+    chip(users.length, 'Totaal gebruikers', '#e6edf3') +
+    chip(active, 'Actief', '#3fb950') +
+    chip(suspended, 'Gesuspendeerd', '#f85149') +
+    chip(pkgs['full']||0, 'Full pakket', '#ffc107') +
+    chip((pkgs['maand1']||0)+(pkgs['maand2']||0)+(pkgs['maand3']||0), 'Maand pakketten', '#26a69a');
+}
+function chip(val, lbl, col) {
+  return '<div class="stat-chip"><div class="sc-val" style="color:'+col+'">'+val+'</div><div class="sc-lbl">'+lbl+'</div></div>';
+}
+
+function admRenderUsers() {
+  var q = (document.getElementById('user-search').value || '').toLowerCase();
+  var users = (window.KENTO_USERS || []).filter(function(u){
+    return !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.package.includes(q) || (u.role||'').includes(q);
+  });
+  document.getElementById('users-count').textContent = users.length + ' gebruiker' + (users.length!==1?'s':'');
+  var pkgs = window.KENTO_PACKAGES || {};
+  var roles = window.KENTO_ROLES || {};
+  var rows = users.map(function(u) {
+    var pkg  = pkgs[u.package]  || { label: u.package,  color: '#8b949e' };
+    var rol  = roles[u.role||'student'] || { label: u.role||'Leerling', color: '#2196F3' };
+    var dotCls  = u.status === 'active' ? 'dot-active' : u.status === 'suspended' ? 'dot-suspended' : 'dot-inactive';
+    var statusTxt = u.status === 'active' ? 'Actief' : u.status === 'suspended' ? 'Gesuspendeerd' : u.status;
+    var actBtns = '';
+    if (u.status === 'active') actBtns += '<button class="act-btn red" onclick="admSuspend(\''+u.id+'\')">Suspend</button>';
+    else actBtns += '<button class="act-btn green" onclick="admActivate(\''+u.id+'\')">Activeer</button>';
+    actBtns += '<button class="act-btn" onclick="admOpenEditModal(\''+u.id+'\')">✏️ Edit</button>';
+    if (u.package !== 'admin') actBtns += '<button class="act-btn red" onclick="admOpenDelete(\''+u.id+'\')">🗑️</button>';
+    return '<tr>'
+      + '<td style="font-weight:700">'+u.name+'</td>'
+      + '<td style="color:#8b949e;font-family:monospace">'+u.email+'</td>'
+      + '<td><span class="pkg-badge" style="background:'+pkg.color+'22;color:'+pkg.color+'">'+pkg.label+'</span></td>'
+      + '<td><span class="pkg-badge" style="background:'+rol.color+'22;color:'+rol.color+'">'+rol.label+'</span></td>'
+      + '<td><span class="status-dot '+dotCls+'"></span>'+statusTxt+'</td>'
+      + '<td style="color:#8b949e">'+u.createdAt+'</td>'
+      + '<td style="color:#8b949e">'+(u.lastLogin||'—')+'</td>'
+      + '<td>'+actBtns+'</td>'
+      + '</tr>';
+  }).join('');
+  document.getElementById('users-tbody').innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:#8b949e;padding:24px">Geen gebruikers gevonden</td></tr>';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User CRUD
+// ─────────────────────────────────────────────────────────────────────────────
+function admOpenAddModal() {
+  _editingUserId = null;
+  document.getElementById('modal-user-title').textContent = '+ Gebruiker toevoegen';
+  document.getElementById('mu-name').value = '';
+  document.getElementById('mu-email').value = '';
+  document.getElementById('mu-pw').value = '';
+  document.getElementById('mu-pw2').value = '';
+  document.getElementById('mu-package').value = 'maand1';
+  document.getElementById('mu-role').value = 'student';
+  document.getElementById('mu-status').value = 'active';
+  document.getElementById('mu-note').value = '';
+  document.getElementById('mu-err').textContent = '';
+  document.getElementById('mu-pw-row').style.display = 'block';
+  document.getElementById('mu-pw2-row').style.display = 'block';
+  document.getElementById('mu-pw-bar').style.width = '0';
+  document.getElementById('modal-user').classList.add('show');
+  setTimeout(function(){ document.getElementById('mu-name').focus(); }, 100);
+}
+
+function admOpenEditModal(id) {
+  var u = (window.KENTO_USERS||[]).find(function(x){ return x.id===id; });
+  if (!u) return;
+  _editingUserId = id;
+  document.getElementById('modal-user-title').textContent = '✏️ Gebruiker bewerken';
+  document.getElementById('mu-name').value = u.name;
+  document.getElementById('mu-email').value = u.email;
+  document.getElementById('mu-pw').value = '';
+  document.getElementById('mu-pw2').value = '';
+  document.getElementById('mu-package').value = u.package;
+  document.getElementById('mu-role').value = u.role || 'student';
+  document.getElementById('mu-status').value = u.status;
+  document.getElementById('mu-note').value = u.note || '';
+  document.getElementById('mu-err').textContent = '';
+  document.getElementById('mu-pw-row').style.display = 'block';
+  document.getElementById('mu-pw2-row').style.display = 'block';
+  document.getElementById('mu-pw-bar').style.width = '0';
+  // Make pw optional for edit
+  document.querySelector('#mu-pw-row label').textContent = 'Nieuw wachtwoord (leeg = niet wijzigen)';
+  document.getElementById('modal-user').classList.add('show');
+}
+
+async function admSaveUser() {
+  var name   = document.getElementById('mu-name').value.trim();
+  var email  = document.getElementById('mu-email').value.trim().toLowerCase();
+  var pw     = document.getElementById('mu-pw').value;
+  var pw2    = document.getElementById('mu-pw2').value;
+  var pkg    = document.getElementById('mu-package').value;
+  var role   = document.getElementById('mu-role').value;
+  var status = document.getElementById('mu-status').value;
+  var note   = document.getElementById('mu-note').value.trim();
+  var err    = document.getElementById('mu-err');
+  err.textContent = '';
+
+  if (!name)  { err.textContent = 'Naam is verplicht.'; return; }
+  if (!email) { err.textContent = 'Login/email is verplicht.'; return; }
+  var isEdit = !!_editingUserId;
+  if (!isEdit && !pw)        { err.textContent = 'Wachtwoord is verplicht.'; return; }
+  if (pw && pw.length < 8)   { err.textContent = 'Wachtwoord minimaal 8 tekens.'; return; }
+  if (pw && pw !== pw2)      { err.textContent = 'Wachtwoorden komen niet overeen.'; return; }
+
+  // ── Local file mode ──────────────────────────────────────────────────────
+  if (_admIsLocalMode()) {
+    var h = pw ? await sha256(pw) : null;
+    var users = window.KENTO_USERS || [];
+    if (isEdit) {
+      var u = users.find(function(x){ return x.id === _editingUserId; });
+      if (u) {
+        u.name = name; u.email = email; u.package = pkg;
+        u.role = role; u.status = status; u.note = note;
+        if (h) u.passwordHash = h;
+      }
+    } else {
+      users.push({ id: 'u_' + Date.now(), name: name, email: email,
+        passwordHash: h, package: pkg, role: role, status: status, note: note });
+      window.KENTO_USERS = users;
+    }
+    admCloseModal('modal-user');
+    admRefresh();
+    return;
+  }
+
+  err.textContent = 'Opslaan\u2026';
+  try {
+    var body = { name, email, package: pkg, role, status, note };
+    if (pw) body.passwordHash = await sha256(pw);
+    if (isEdit) {
+      body.id = _editingUserId;
+      var res = await fetch('/api/users', { method: 'PUT', headers: _admHeaders(), body: JSON.stringify(body) });
+      var data = await res.json();
+      if (!res.ok) { err.textContent = '\u274C ' + (data.error || 'Opslaan mislukt.'); return; }
+    } else {
+      body.id = 'u_' + Date.now();
+      var res = await fetch('/api/users', { method: 'POST', headers: _admHeaders(), body: JSON.stringify(body) });
+      var data = await res.json();
+      if (!res.ok) { err.textContent = '\u274C ' + (data.error || 'Aanmaken mislukt.'); return; }
+    }
+    admCloseModal('modal-user');
+    admRefresh();
+  } catch(e) { err.textContent = '\u274C Verbindingsfout.'; }
+}
+
+async function admSuspend(id) {
+  if (_admIsLocalMode()) {
+    var u = (window.KENTO_USERS||[]).find(function(x){ return x.id===id; });
+    if (u) u.status = 'suspended';
+  } else {
+    await fetch('/api/users', { method: 'PUT', headers: _admHeaders(), body: JSON.stringify({ id, status: 'suspended' }) });
+  }
+  admRefresh();
+}
+async function admActivate(id) {
+  if (_admIsLocalMode()) {
+    var u = (window.KENTO_USERS||[]).find(function(x){ return x.id===id; });
+    if (u) u.status = 'active';
+  } else {
+    await fetch('/api/users', { method: 'PUT', headers: _admHeaders(), body: JSON.stringify({ id, status: 'active' }) });
+  }
+  admRefresh();
+}
+
+function admOpenDelete(id) {
+  _deletingUserId = id;
+  var u = (window.KENTO_USERS||[]).find(function(x){ return x.id===id; });
+  document.getElementById('del-confirm-name').textContent = u ? u.name + ' (' + u.email + ')' : '—';
+  document.getElementById('modal-delete').classList.add('show');
+}
+async function admConfirmDelete() {
+  if (_admIsLocalMode()) {
+    window.KENTO_USERS = (window.KENTO_USERS||[]).filter(function(x){ return x.id !== _deletingUserId; });
+  } else {
+    await fetch('/api/users?id=' + encodeURIComponent(_deletingUserId), { method: 'DELETE', headers: _admHeaders() });
+  }
+  admCloseModal('modal-delete');
+  admRefresh();
+}
+
+function admCloseModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// Password strength check in modal
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('mu-pw');
+  if (inp) inp.addEventListener('input', function() {
+    var pw = this.value;
+    var bar = document.getElementById('mu-pw-bar');
+    var score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^a-zA-Z0-9]/.test(pw)) score++;
+    var cols = ['#f85149','#f85149','#ffc107','#ffc107','#3fb950','#3fb950'];
+    bar.style.width = (score/5*100)+'%';
+    bar.style.background = cols[score]||'#3fb950';
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Export / Import
+// ─────────────────────────────────────────────────────────────────────────────
+async function admExportUsers() {
+  var okEl = document.getElementById('export-ok');
+  okEl.textContent = '⏳ Bezig met exporteren...';
+  try {
+    var res = await fetch('/api/users', { headers: _admHeaders() });
+    var users = await res.json();
+    var data = JSON.stringify(users, null, 2);
+    var content = '// ST-Trading-EDU Users — Gegenereerd: '+new Date().toLocaleString('nl-NL')+'\n'
+      + '// JSON export van alle gebruikers\n\n'
+      + data;
+    await navigator.clipboard.writeText(content);
+    okEl.textContent = '\u2705 Gekopieerd naar klembord! (' + users.length + ' gebruikers)';
+    setTimeout(function(){ okEl.textContent=''; }, 4000);
+  } catch(e) {
+    okEl.textContent = 'Fout bij exporteren: ' + e.message;
+  }
+}
+
+function admImportModal() {
+  document.getElementById('import-ta').value = '';
+  document.getElementById('import-err').textContent = '';
+  document.getElementById('modal-import').classList.add('show');
+}
+async function admDoImport() {
+  var raw = document.getElementById('import-ta').value.trim();
+  var err = document.getElementById('import-err');
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) { err.textContent = 'Ongeldige JSON — moet een array zijn.'; return; }
+  } catch(e) {
+    err.textContent = 'Ongeldige JSON: ' + e.message; return;
+  }
+  err.textContent = '⏳ Importeren... (0/' + parsed.length + ')';
+  var ok = 0, skipped = 0;
+  for (var i = 0; i < parsed.length; i++) {
+    var u = parsed[i];
+    if (!u.name || !u.email || !u.passwordHash) { skipped++; continue; }
+    try {
+      var res = await fetch('/api/users', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, _admHeaders()),
+        body: JSON.stringify(u)
+      });
+      if (res.ok) ok++; else skipped++;
+    } catch(e) { skipped++; }
+    err.textContent = '⏳ Importeren... (' + (ok+skipped) + '/' + parsed.length + ')';
+  }
+  err.textContent = '';
+  admCloseModal('modal-import');
+  admRefresh();
+  document.getElementById('export-ok').textContent = '\u2705 Import klaar: ' + ok + ' toegevoegd, ' + skipped + ' overgeslagen.';
+  setTimeout(function(){ document.getElementById('export-ok').textContent=''; }, 5000);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings section
+// ─────────────────────────────────────────────────────────────────────────────
+function admRefreshSettings() {
+  // Session status
+  try {
+    var hours_map = {admin:24,full:24,maand1:2,maand2:2,maand3:2};
+    var s = JSON.parse(localStorage.getItem('kento_session_v2') || 'null');
+    var statusEl = document.getElementById('adm-session-status');
+    if (s && s.loginTime) {
+      var hrs = hours_map[s.package] || 2;
+      var exp = new Date(s.loginTime + hrs*3600000);
+      var remaining = exp - Date.now();
+      if (remaining > 0) {
+        statusEl.innerHTML = '<div class="session-pill">\u2705 Actieve app sessie — '+s.userName+' ('+s.package+') — nog '+Math.round(remaining/60000)+' min</div>';
+        document.getElementById('adm-login-time').textContent = new Date(s.loginTime).toLocaleTimeString('nl-NL');
+        document.getElementById('adm-expire-time').textContent = exp.toLocaleTimeString('nl-NL');
+      } else {
+        statusEl.innerHTML = '<div class="session-pill inactive">\uD83D\uDD12 Sessie verlopen</div>';
+      }
+    } else {
+      document.getElementById('adm-session-status').innerHTML = '<div class="session-pill inactive">\uD83D\uDD12 Geen actieve app sessie</div>';
+      document.getElementById('adm-login-time').textContent = '—';
+      document.getElementById('adm-expire-time').textContent = '—';
+    }
+  } catch(e){}
+
+  // Package overview
+  var pkgs = window.KENTO_PACKAGES || {};
+  var users = window.KENTO_USERS || [];
+  var html = '<div style="display:flex;flex-wrap:wrap;gap:10px">';
+  Object.keys(pkgs).forEach(function(key) {
+    var p = pkgs[key];
+    var count = users.filter(function(u){ return u.package===key; }).length;
+    html += '<div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:12px 16px;min-width:160px">'
+      + '<div style="font-size:13px;font-weight:800;color:'+p.color+'">'+p.label+'</div>'
+      + '<div style="font-size:11px;color:#8b949e;margin-top:4px">Sessie: '+p.sessionHours+'u</div>'
+      + '<div style="font-size:11px;color:#8b949e">Maanden: '+p.months.join(', ')+'</div>'
+      + '<div style="font-size:18px;font-weight:800;color:#e6edf3;margin-top:6px">'+count+' <span style="font-size:11px;font-weight:400;color:#8b949e">gebruiker'+( count!==1?'s':'')+'</span></div>'
+      + '</div>';
+  });
+  html += '</div>';
+  document.getElementById('pkg-overview').innerHTML = html;
+}
+
+async function admForceLogout() {
+  // Call logout API to invalidate server-side session
+  try {
+    var s = JSON.parse(localStorage.getItem('kento_session_v2') || 'null');
+    if (s && s.token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + s.token }
+      });
+    }
+  } catch(e) {}
+  localStorage.removeItem('kento_session_v2');
+  admRefreshSettings();
+}
+
+function admCheckStrength() {
+  var pw = document.getElementById('adm-new-pw').value;
+  var bar = document.getElementById('adm-pw-bar');
+  var score = 0;
+  if (pw.length>=8)  score++;
+  if (pw.length>=12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^a-zA-Z0-9]/.test(pw)) score++;
+  var cols = ['#f85149','#f85149','#ffc107','#ffc107','#3fb950'];
+  bar.style.width=(score/5*100)+'%';
+  bar.style.background=cols[Math.min(score,4)];
+}
+
+async function admChangePw() {
+  var pw  = document.getElementById('adm-new-pw').value;
+  var pw2 = document.getElementById('adm-confirm-pw').value;
+  var err = document.getElementById('adm-pw-err');
+  var ok  = document.getElementById('adm-pw-ok');
+  err.textContent=''; ok.textContent='';
+  if (!pw)          { err.textContent='Voer een nieuw wachtwoord in.'; return; }
+  if (pw.length<8)  { err.textContent='Minimaal 8 tekens.'; return; }
+  if (pw!==pw2)     { err.textContent='Wachtwoorden komen niet overeen.'; return; }
+  var h = await sha256(pw);
+  // Find admin user id first
+  try {
+    var usersRes = await fetch('/api/users', { headers: _admHeaders() });
+    var users = await usersRes.json();
+    var adminUser = users.find(function(u){ return u.package==='admin'; });
+    if (!adminUser) { err.textContent = 'Admin gebruiker niet gevonden.'; return; }
+    var res = await fetch('/api/users', {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, _admHeaders()),
+      body: JSON.stringify({
+        id: adminUser.id,
+        name: adminUser.name,
+        email: adminUser.email,
+        passwordHash: h,
+        package: adminUser.package,
+        role: adminUser.role || 'admin',
+        status: adminUser.status,
+        note: adminUser.note || ''
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Fout bij opslaan.'; return; }
+  } catch(e) {
+    err.textContent = 'Netwerkfout: ' + e.message; return;
+  }
+  document.getElementById('adm-new-pw').value='';
+  document.getElementById('adm-confirm-pw').value='';
+  document.getElementById('adm-pw-bar').style.width='0';
+  ok.textContent='\u2705 Wachtwoord opgeslagen! Je moet opnieuw inloggen.';
+  localStorage.removeItem(ADM_SESSION_KEY);
+  setTimeout(function(){ admLogout(); }, 2000);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async function() {
+  var valid = await admCheckSession();
+  if (valid) {
+    document.getElementById('adm-login').style.display = 'none';
+    document.getElementById('adm-app').style.display = 'flex';
+    admRefresh();
+  } else {
+    setTimeout(function(){ document.getElementById('adm-pw').focus(); }, 100);
+  }
+});
+
+// Prevent copy/right-click
+document.addEventListener('copy', function(e){ e.preventDefault(); });
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+// Close modals on background click
+document.querySelectorAll('.modal-bg').forEach(function(bg){
+  bg.addEventListener('click', function(e){
+    if (e.target === bg) bg.classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>

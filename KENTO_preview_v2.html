@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>ST-Trading-EDU v1 — Preview</title>
+<style>
+  body { margin: 0; background: #131722; font-family: 'Segoe UI', sans-serif; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1100" height="600"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// ── achtergrond
+ctx.fillStyle = '#131722';
+ctx.fillRect(0, 0, W, H);
+
+// ── grid lijnen
+ctx.strokeStyle = '#1e222d';
+ctx.lineWidth = 1;
+for (let y = 80; y < H - 40; y += 50) {
+  ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(W - 160, y); ctx.stroke();
+}
+for (let x = 80; x < W - 160; x += 60) {
+  ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x, H - 40); ctx.stroke();
+}
+
+// ── Premium zone (licht rood, heel transparant)
+ctx.fillStyle = 'rgba(239,83,80,0.07)';
+ctx.fillRect(80, 80, W - 240, 130);
+ctx.strokeStyle = 'rgba(239,83,80,0.25)';
+ctx.lineWidth = 1;
+ctx.strokeRect(80, 80, W - 240, 130);
+
+// ── Discount zone (licht groen, heel transparant)
+ctx.fillStyle = 'rgba(38,166,154,0.07)';
+ctx.fillRect(80, 350, W - 240, 150);
+ctx.strokeStyle = 'rgba(38,166,154,0.25)';
+ctx.lineWidth = 1;
+ctx.strokeRect(80, 350, W - 240, 150);
+
+// zone labels
+ctx.font = '11px Segoe UI';
+ctx.fillStyle = 'rgba(239,83,80,0.6)';
+ctx.fillText('PREMIUM ZONE', 90, 100);
+ctx.fillStyle = 'rgba(38,166,154,0.6)';
+ctx.fillText('DISCOUNT ZONE', 90, 370);
+
+// ── FIB lijnen
+const fibs = [
+  { y: 88,  label: '0.0',   col: 'rgba(255,193,7,0.7)' },
+  { y: 148, label: '0.236', col: 'rgba(239,83,80,0.6)' },
+  { y: 190, label: '0.382', col: 'rgba(239,83,80,0.7)' },
+  { y: 245, label: '0.500', col: 'rgba(255,193,7,0.6)' },
+  { y: 300, label: '0.618', col: 'rgba(38,166,154,0.8)' },
+  { y: 360, label: '0.786', col: 'rgba(38,166,154,0.6)' },
+  { y: 490, label: '1.0',   col: 'rgba(255,193,7,0.7)' },
+];
+
+fibs.forEach(f => {
+  ctx.strokeStyle = f.col;
+  ctx.lineWidth = 1;
+  ctx.setLineDash(f.label === '0.0' || f.label === '1.0' ? [] : [4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(80, f.y);
+  ctx.lineTo(W - 162, f.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.fillStyle = f.col;
+  ctx.fillText(f.label, W - 155, f.y + 4);
+});
+
+// ── BUY ZONE box (helder groen)
+ctx.fillStyle = 'rgba(0,200,83,0.18)';
+ctx.fillRect(80, 300, W - 240, 60);
+ctx.strokeStyle = 'rgba(0,200,83,0.5)';
+ctx.lineWidth = 1.5;
+ctx.strokeRect(80, 300, W - 240, 60);
+ctx.font = 'bold 12px Segoe UI';
+ctx.fillStyle = 'rgba(0,200,83,0.9)';
+ctx.fillText('BUY ZONE  0.618 – 0.786', 100, 335);
+
+// ── SELL ZONE box (oranje)
+ctx.fillStyle = 'rgba(255,109,0,0.18)';
+ctx.fillRect(80, 148, W - 240, 42);
+ctx.strokeStyle = 'rgba(255,109,0,0.5)';
+ctx.lineWidth = 1.5;
+ctx.strokeRect(80, 148, W - 240, 42);
+ctx.font = 'bold 12px Segoe UI';
+ctx.fillStyle = 'rgba(255,109,0,0.9)';
+ctx.fillText('SELL ZONE  0.236 – 0.382', 100, 173);
+
+// ── EMA 200 (donker blauw)
+ctx.strokeStyle = '#1565c0';
+ctx.lineWidth = 2.5;
+ctx.beginPath();
+const ema200pts = [
+  [80,160],[140,158],[200,154],[260,150],[320,155],[380,162],[440,168],
+  [500,175],[560,185],[620,200],[680,218],[740,238],[800,255],[860,270],[920,280]
+];
+ema200pts.forEach(([x,y],i) => i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+ctx.stroke();
+
+// ── EMA 50 (geel)
+ctx.strokeStyle = '#ffd54f';
+ctx.lineWidth = 1.5;
+ctx.beginPath();
+const ema50pts = [
+  [80,180],[140,172],[200,165],[260,170],[320,178],[380,190],[440,205],
+  [500,220],[560,238],[620,255],[680,270],[740,288],[800,300],[860,310],[920,305]
+];
+ema50pts.forEach(([x,y],i) => i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+ctx.stroke();
+
+// ── EMA Fast (teal)
+ctx.strokeStyle = '#00bcd4';
+ctx.lineWidth = 1;
+ctx.beginPath();
+const emaFast = [
+  [80,200],[110,188],[140,175],[170,182],[200,170],[230,162],[260,175],
+  [290,190],[320,185],[350,195],[380,210],[410,225],[440,215],[470,230],
+  [500,245],[530,260],[560,255],[590,268],[620,280],[650,295],[680,285],
+  [710,298],[740,312],[770,305],[800,315],[830,308],[860,318],[890,325],[920,318]
+];
+emaFast.forEach(([x,y],i) => i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+ctx.stroke();
+
+// ── Kaarsen
+function candle(x, o, c, h, l, bull) {
+  const col = bull ? '#26a69a' : '#ef5350';
+  ctx.strokeStyle = col;
+  ctx.fillStyle = col;
+  ctx.lineWidth = 1;
+  // wick
+  ctx.beginPath();
+  ctx.moveTo(x + 7, h); ctx.lineTo(x + 7, l);
+  ctx.stroke();
+  // body
+  const top = Math.min(o, c), bot = Math.max(o, c);
+  ctx.fillRect(x, top, 14, Math.max(bot - top, 2));
+}
+
+const candles = [
+  [82,  200,185, 175,210, true ],
+  [100, 185,170, 165,192, true ],
+  [118, 172,180, 168,185, false],
+  [136, 178,162, 158,182, true ],
+  [154, 163,175, 160,178, false],
+  [172, 174,160, 155,178, true ],
+  [190, 161,148, 142,165, true ],
+  [208, 149,162, 146,168, false],
+  [226, 160,172, 158,176, false],
+  [244, 170,158, 154,173, true ],
+  [262, 160,175, 156,178, false],
+  [280, 173,185, 170,190, false],
+  [298, 183,168, 164,186, true ],
+  [316, 170,182, 167,188, false],
+  [334, 180,195, 176,200, false],
+  [352, 193,178, 174,196, true ],
+  [370, 180,165, 160,183, true ],
+  [388, 167,180, 163,184, false],
+  [406, 178,192, 174,196, false],
+  [424, 190,175, 171,193, true ],
+  [442, 177,190, 174,195, false],
+  [460, 188,205, 184,210, false],
+  [478, 203,215, 199,218, false],
+  [496, 213,198, 194,216, true ],
+  [514, 200,215, 197,220, false],
+  [532, 212,228, 208,232, false],
+  [550, 226,210, 206,230, true ],
+  [568, 212,225, 208,228, false],
+  [586, 223,238, 220,242, false],
+  [604, 236,250, 232,254, false],
+  [622, 248,260, 244,265, false],
+  [640, 258,240, 236,262, true ],
+  [658, 242,255, 238,260, false],
+  [676, 253,268, 248,272, false],
+  [694, 265,252, 248,268, true ],
+  [712, 254,270, 250,274, false],
+  [730, 268,280, 264,285, false],
+  [748, 278,262, 258,282, true ],
+  [766, 264,278, 260,282, false],
+  [784, 276,290, 272,295, false],
+  [802, 288,272, 268,292, true ],
+  [820, 274,288, 270,292, false],
+  [838, 285,298, 280,302, false],
+  [856, 295,308, 290,312, false],
+  [874, 306,290, 286,310, true ],
+  [892, 292,305, 288,310, false],
+  [910, 302,315, 298,320, false],
+];
+candles.forEach(([x,o,c,h,l,bull]) => candle(x,o,c,h,l,bull));
+
+// ── Labels: groen BOS omhoog
+function drawLabel(x, y, text, col, isUp) {
+  ctx.font = 'bold 11px Segoe UI';
+  const tw = ctx.measureText(text).width;
+  const pad = 5;
+  const bw = tw + pad * 2, bh = 18;
+  const bx = x - bw / 2;
+  const by = isUp ? y - bh - 6 : y + 6;
+
+  // achtergrond
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 3);
+  ctx.fill();
+
+  // tekst
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(text, bx + pad, by + 13);
+
+  // pijl
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  if (isUp) {
+    ctx.moveTo(x - 5, by + bh);
+    ctx.lineTo(x + 5, by + bh);
+    ctx.lineTo(x, by + bh + 5);
+  } else {
+    ctx.moveTo(x - 5, by);
+    ctx.lineTo(x + 5, by);
+    ctx.lineTo(x, by - 5);
+  }
+  ctx.fill();
+}
+
+// BOS groen (bullish — omhoog)
+drawLabel(190, 148, 'BOS', 'rgba(0,200,83,0.85)', true);
+drawLabel(460, 290, 'BOS', 'rgba(0,200,83,0.85)', true);
+
+// BOS rood (bearish — omlaag)
+drawLabel(640, 262, 'BOS', 'rgba(239,83,80,0.85)', false);
+drawLabel(802, 292, 'BOS', 'rgba(239,83,80,0.85)', false);
+
+// CHoCH groen (bullish)
+function drawCHoCH(x, y, isUp) {
+  const col = isUp ? 'rgba(0,200,83,0.45)' : 'rgba(239,83,80,0.45)';
+  const textCol = isUp ? '#00c853' : '#ef5350';
+  ctx.font = 'bold 10px Segoe UI';
+  const tw = ctx.measureText('CHoCH').width;
+  const pad = 4;
+  const bw = tw + pad * 2, bh = 16;
+  const bx = x - bw / 2;
+  const by = isUp ? y - bh - 4 : y + 4;
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 3);
+  ctx.fill();
+  ctx.fillStyle = textCol;
+  ctx.fillText('CHoCH', bx + pad, by + 12);
+}
+
+drawCHoCH(298, 168, true);
+drawCHoCH(550, 340, true);
+drawCHoCH(532, 232, false);
+drawCHoCH(856, 312, false);
+
+// ── BUY label (groot, helder groen)
+function drawBuySell(x, y, text, isUp) {
+  const col = isUp ? 'rgba(0,200,83,0.9)' : 'rgba(239,83,80,0.9)';
+  ctx.font = 'bold 12px Segoe UI';
+  const tw = ctx.measureText(text).width;
+  const pad = 7, bw = tw + pad*2, bh = 22;
+  const bx = x - bw/2;
+  const by = isUp ? y + 6 : y - bh - 6;
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 4);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.fillText(text, bx + pad, by + 16);
+}
+drawBuySell(460, 295, 'BUY', true);
+drawBuySell(532, 208, 'SELL', false);
+
+// ── SL / TP lijnen
+ctx.setLineDash([6,3]);
+ctx.strokeStyle = 'rgba(239,83,80,0.7)';
+ctx.lineWidth = 1.5;
+ctx.beginPath(); ctx.moveTo(460, 340); ctx.lineTo(920, 340); ctx.stroke();
+ctx.strokeStyle = 'rgba(38,166,154,0.7)';
+ctx.beginPath(); ctx.moveTo(460, 255); ctx.lineTo(920, 255); ctx.stroke();
+ctx.strokeStyle = 'rgba(38,166,154,0.4)';
+ctx.beginPath(); ctx.moveTo(460, 210); ctx.lineTo(920, 210); ctx.stroke();
+ctx.setLineDash([]);
+
+ctx.font = '10px Segoe UI';
+ctx.fillStyle = 'rgba(239,83,80,0.8)';  ctx.fillText('SL',  924, 344);
+ctx.fillStyle = 'rgba(38,166,154,0.8)'; ctx.fillText('TP1', 924, 259);
+ctx.fillStyle = 'rgba(38,166,154,0.5)'; ctx.fillText('TP2', 924, 214);
+
+// ── Dashboard (rechts boven)
+const dx = W - 148, dy = 10, dw = 138, rowH = 22;
+const rows = [
+  { label: null,       val: 'ST-Trading-EDU',  bg: '#0a1628', valCol: '#fff', full: true },
+  { label: null,       val: '▸ SMC',         bg: '#0d1117', valCol: '#64b5f6', full: true },
+  { label: 'Bias',    val: 'BEARISH',       bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: 'Zone',    val: 'Premium',       bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: 'OB',      val: 'Bearish OB',    bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: null,       val: '▸ EMA Trend',   bg: '#0d1117', valCol: '#ffd54f', full: true },
+  { label: 'EMA 200', val: 'Onder',         bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: 'EMA 50',  val: 'Onder',         bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: null,       val: '▸ Scalper',     bg: '#0d1117', valCol: '#26a69a', full: true },
+  { label: 'Signaal', val: 'SELL',          bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+  { label: 'SL',      val: '1.4210',        bg: null, valBg: '#3a0d0d', valCol: '#9ba8b4' },
+  { label: 'TP1',     val: '1.3980',        bg: null, valBg: '#0d3320', valCol: '#9ba8b4' },
+  { label: 'TP2',     val: '1.3750',        bg: null, valBg: '#0d3320', valCol: '#9ba8b4' },
+  { label: null,       val: '▸ Fibonacci',   bg: '#0d1117', valCol: '#ffc107', full: true },
+  { label: 'Fib Niv', val: '0.382',         bg: null, valBg: '#141920', valCol: '#9ba8b4' },
+  { label: 'Fib Zone',val: 'SELL ZONE',     bg: null, valBg: '#3a0d0d', valCol: '#ef5350' },
+];
+
+rows.forEach((row, i) => {
+  const ry = dy + i * rowH;
+  if (row.full) {
+    ctx.fillStyle = row.bg;
+    ctx.fillRect(dx, ry, dw, rowH);
+    ctx.font = 'bold 10px Segoe UI';
+    ctx.fillStyle = row.valCol;
+    ctx.fillText(row.val, dx + 6, ry + 14);
+  } else {
+    // label cel
+    ctx.fillStyle = '#141920';
+    ctx.fillRect(dx, ry, dw * 0.5, rowH);
+    ctx.font = '10px Segoe UI';
+    ctx.fillStyle = '#9ba8b4';
+    ctx.fillText(row.label, dx + 5, ry + 14);
+    // value cel
+    ctx.fillStyle = row.valBg;
+    ctx.fillRect(dx + dw * 0.5, ry, dw * 0.5, rowH);
+    ctx.font = 'bold 10px Segoe UI';
+    ctx.fillStyle = row.valCol;
+    const tw = ctx.measureText(row.val).width;
+    ctx.fillText(row.val, dx + dw - tw - 5, ry + 14);
+  }
+  // border
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(dx, ry, dw, rowH);
+});
+
+// dashboard outer border
+ctx.strokeStyle = '#333';
+ctx.lineWidth = 1;
+ctx.strokeRect(dx, dy, dw, rows.length * rowH);
+
+// ── Legenda onderaan
+const legend = [
+  { col: 'rgba(0,200,83,0.85)',  label: 'BOS Bullish' },
+  { col: 'rgba(239,83,80,0.85)', label: 'BOS Bearish' },
+  { col: 'rgba(0,200,83,0.5)',   label: 'CHoCH Bullish' },
+  { col: 'rgba(239,83,80,0.5)',  label: 'CHoCH Bearish' },
+  { col: 'rgba(0,200,83,0.75)',  label: 'Buy Zone (0.618-0.786)' },
+  { col: 'rgba(255,109,0,0.75)', label: 'Sell Zone (0.236-0.382)' },
+];
+let lx = 80;
+legend.forEach(item => {
+  ctx.fillStyle = item.col;
+  ctx.fillRect(lx, H - 28, 12, 12);
+  ctx.font = '11px Segoe UI';
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText(item.label, lx + 16, H - 18);
+  lx += ctx.measureText(item.label).width + 36;
+});
+
+// titel
+ctx.font = 'bold 13px Segoe UI';
+ctx.fillStyle = '#e6edf3';
+ctx.fillText('ST-Trading-EDU v1 — Label & Zone Preview', 80, 38);
+ctx.font = '11px Segoe UI';
+ctx.fillStyle = '#8b949e';
+ctx.fillText('BOS groen/rood  •  CHoCH groen/rood  •  Buy Zone helder groen  •  Sell Zone oranje', 80, 56);
+</script>
+</body>
+</html>

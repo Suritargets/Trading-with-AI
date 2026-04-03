@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENTO Trading Video Gids</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d1117; color: #e6edf3;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 20px;
+}
+.header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 24px; width: 100%; max-width: 960px;
+}
+.header .icon {
+  width: 36px; height: 36px; background: linear-gradient(135deg,#2196F3,#00bcd4);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; color: #fff; flex-shrink: 0;
+}
+.header h1 { font-size: 20px; font-weight: 800; color: #e6edf3; }
+.header p { font-size: 13px; color: #8b949e; margin-top: 2px; }
+.back-btn {
+  margin-left: auto; background: #21262d; border: 1px solid #30363d;
+  border-radius: 7px; padding: 6px 16px; font-size: 13px; color: #8b949e;
+  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.back-btn:hover { border-color: #2196F3; color: #2196F3; }
+
+.player-wrap {
+  width: 100%; max-width: 960px;
+  background: #161b22; border-radius: 16px; border: 1px solid #21262d;
+  overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+#mainCanvas {
+  width: 100%; display: block; cursor: pointer;
+  background: #0d1117;
+}
+.controls {
+  padding: 14px 20px 16px; background: #161b22; border-top: 1px solid #21262d;
+  display: flex; align-items: center; gap: 14px;
+}
+#playBtn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg,#2196F3,#00bcd4);
+  border: none; cursor: pointer; font-size: 14px; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: transform .15s; box-shadow: 0 4px 14px rgba(33,150,243,.4);
+}
+#playBtn:hover { transform: scale(1.08); }
+.slider-wrap { flex: 1; position: relative; }
+#timeSlider {
+  width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
+  background: #21262d; border-radius: 2px; outline: none; cursor: pointer;
+}
+#timeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: #2196F3; cursor: pointer; box-shadow: 0 0 0 3px rgba(33,150,243,.3);
+}
+#timeSlider::-webkit-slider-runnable-track { border-radius: 2px; }
+.time-display { font-size: 13px; color: #8b949e; font-variant-numeric: tabular-nums; flex-shrink: 0; width: 90px; text-align: right; }
+.chapter-label { font-size: 12px; color: #2196F3; flex-shrink: 0; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chapters {
+  width: 100%; max-width: 960px; margin-top: 20px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;
+}
+.chapter-btn {
+  background: #161b22; border: 1px solid #21262d; border-radius: 8px;
+  padding: 9px 14px; cursor: pointer; text-align: left; transition: all .15s;
+  color: #8b949e; font-size: 12px;
+}
+.chapter-btn:hover { border-color: #2196F3; color: #e6edf3; }
+.chapter-btn.active { border-color: #2196F3; background: rgba(33,150,243,.08); color: #2196F3; }
+.chapter-btn .ch-num { font-size: 10px; color: #30363d; margin-bottom: 3px; }
+.chapter-btn .ch-title { font-weight: 600; font-size: 12px; }
+.chapter-btn .ch-time { font-size: 10px; color: #30363d; margin-top: 2px; }
+.chapter-btn.active .ch-num, .chapter-btn.active .ch-time { color: rgba(33,150,243,.5); }
+#voiceBtn {
+  background: #21262d; border: 1px solid #30363d; border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; color: #8b949e; cursor: pointer;
+  transition: all .2s; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+#voiceBtn:hover { border-color: #FF9800; color: #FF9800; }
+#voiceBtn.active { border-color: #FF9800; background: rgba(255,152,0,.12); color: #FF9800; }
+#voiceBtn.active::before { content:''; display:inline-block; width:7px; height:7px; background:#FF9800; border-radius:50%; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+.subtitle-bar {
+  padding: 8px 20px; background: rgba(13,17,23,.9);
+  border-top: 1px solid #21262d; min-height: 36px;
+  display: flex; align-items: center; justify-content: center;
+}
+.subtitle-bar p { font-size: 13px; color: #e6edf3; text-align: center; line-height: 1.5; font-style: italic; opacity: .85; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon">K</div>
+  <div>
+    <h1>KENTO Trading Video Gids</h1>
+    <p>Complete visuele uitleg · ~5 minuten · 18 hoofdstukken · Geen geluid</p>
+  </div>
+  <a class="back-btn" href="KENTO_SUITE_App.html">← Terug naar Doc App</a>
+</div>
+
+<div class="player-wrap">
+  <canvas id="mainCanvas" width="960" height="540"></canvas>
+  <div class="controls">
+    <button id="playBtn">▶</button>
+    <div class="slider-wrap">
+      <input type="range" id="timeSlider" min="0" max="300" value="0" step="0.1">
+    </div>
+    <span class="chapter-label" id="chapterLabel">Intro</span>
+    <span class="time-display" id="timeDisplay">0:00 / 5:00</span>
+    <button id="voiceBtn" title="Voice-over aan/uit">🔇 Voice-over</button>
+  </div>
+  <div class="subtitle-bar"><p id="subtitleText">Druk op ▶ om te beginnen</p></div>
+</div>
+
+<div class="chapters" id="chaptersGrid"></div>
+
+<script>
+const W = 960, H = 540;
+const TOTAL = 300;
+
+// ── Palette ─────────────────────────────────────
+const C = {
+  bg: '#0d1117', bg2: '#161b22', bg3: '#21262d', bg4: '#30363d',
+  accent: '#2196F3', teal: '#00bcd4', green: '#089981', red: '#F23645',
+  orange: '#FF9800', yellow: '#ffc107', white: '#e6edf3', gray: '#8b949e',
+  purple: '#9c27b0', lime: '#00c853'
+};
+
+// ── Math helpers ─────────────────────────────────
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp  = (a,b,t) => a+(b-a)*clamp(t,0,1);
+const ease  = t => t<.5 ? 2*t*t : -1+(4-2*t)*t;
+const easeO = t => 1-Math.pow(1-clamp(t,0,1),3);
+const easeI = t => Math.pow(clamp(t,0,1),2);
+const seg   = (p, s, e) => clamp((p-s)/(e-s), 0, 1); // slice of p between s..e
+
+// ── Canvas draw helpers ───────────────────────────
+function rr(ctx, x, y, w, h, r, fill, stroke, sw=1) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=sw;ctx.stroke();}
+}
+function txt(ctx, s, x, y, size, col, align='center', weight='600') {
+  ctx.font = `${weight} ${size}px 'Segoe UI',sans-serif`;
+  ctx.fillStyle = col; ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+}
+function atxt(ctx, s, x, y, size, col, a, align='center', weight='600') {
+  ctx.save(); ctx.globalAlpha = clamp(a,0,1);
+  txt(ctx, s, x, y, size, col, align, weight);
+  ctx.restore();
+}
+function line(ctx, x1,y1,x2,y2, col, w=1, dash=[]) {
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash); ctx.stroke(); ctx.setLineDash([]);
+}
+function animLine(ctx, x1,y1,x2,y2, p, col, w=1, dash=[]) {
+  line(ctx, x1,y1, lerp(x1,x2,p), lerp(y1,y2,p), col, w, dash);
+}
+function candle(ctx, cx, top, bot, high, low, bull, cw=14) {
+  const col = bull ? C.green : C.red;
+  ctx.strokeStyle=col; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,high); ctx.lineTo(cx,low); ctx.stroke();
+  ctx.fillStyle=col;
+  const h = Math.max(Math.abs(bot-top),2);
+  ctx.fillRect(cx-cw/2, Math.min(top,bot), cw, h);
+}
+function labelBox(ctx, text, x, y, bg, fg, a, sz=13, pad=8) {
+  ctx.save(); ctx.globalAlpha=clamp(a,0,1);
+  ctx.font=`600 ${sz}px 'Segoe UI',sans-serif`;
+  const mw = ctx.measureText(text).width;
+  rr(ctx, x-mw/2-pad, y-sz, mw+pad*2, sz+pad, 5, bg);
+  ctx.fillStyle=fg; ctx.textAlign='center'; ctx.fillText(text, x, y);
+  ctx.restore();
+}
+function arrow(ctx, x1,y1,x2,y2, col, a) {
+  ctx.save(); ctx.globalAlpha=clamp(a,0,1);
+  const angle = Math.atan2(y2-y1,x2-x1);
+  const len = 12;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-len*Math.cos(angle-.4), y2-len*Math.sin(angle-.4));
+  ctx.lineTo(x2-len*Math.cos(angle+.4), y2-len*Math.sin(angle+.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+  ctx.restore();
+}
+function gradBG(ctx) {
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d1117'); g.addColorStop(1,'#0a0f14');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+function gridBG(ctx, alpha=0.04) {
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.restore();
+}
+
+// ── Chart helper ──────────────────────────────────
+function makeChart(minP, maxP, l=70, r=820, t=90, b=430) {
+  const ch=b-t, cw=r-l;
+  return {
+    l,r,t,b,ch,cw,
+    pY: p => t+ch*(1-(p-minP)/(maxP-minP)),
+    bX: (i,n) => l+(i+.5)*cw/n
+  };
+}
+function chartGrid(ctx, ch, steps=5) {
+  ctx.save(); ctx.globalAlpha=.15; ctx.strokeStyle='#ffffff'; ctx.lineWidth=.5;
+  ctx.setLineDash([2,4]);
+  for(let i=0;i<=steps;i++){
+    const y=ch.t+i*ch.ch/steps;
+    ctx.beginPath();ctx.moveTo(ch.l,y);ctx.lineTo(ch.r,y);ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.restore();
+}
+
+// ── Candle data sets ──────────────────────────────
+// Normalised prices 0-100, format [o,c,h,l]
+const CD_STRUCTURE = [
+  [38,44,46,36],[44,42,45,40],[42,50,52,41],[50,47,52,46],[47,55,57,45],
+  [55,52,56,50],[52,60,62,51],[60,58,62,57],[58,65,67,56],[65,62,66,60],
+  [62,56,64,54],[56,53,58,52],[53,48,55,46],[48,44,50,42],[44,40,46,38],
+];
+const CD_BOS = [
+  [40,45,47,38],[45,43,46,41],[43,50,52,42],[50,48,51,46],[48,55,56,47],
+  [55,52,56,50],[52,58,59,50],[58,62,63,56],[62,60,63,59],[60,70,71,59],// BOS
+  [70,68,72,67],[68,74,75,66],[74,72,76,70],
+];
+const CD_CHOCH = [
+  [40,46,48,38],[46,52,53,44],[52,49,54,47],[49,55,57,48],[55,58,59,53],
+  [58,54,59,52],[54,50,55,49],[50,46,51,44],[46,40,47,39],// CHoCH
+];
+const CD_OB = [
+  [42,48,50,40],[48,45,49,43],[45,52,54,44],[52,49,53,47],[49,58,59,48],
+  [58,55,59,54],[55,52,56,50],[52,48,54,46],[48,56,57,47],// BOS → OB on prev candle
+  [56,60,62,54],[60,65,66,58],
+];
+const CD_FVG = [
+  [50,56,57,48],[56,52,57,50],[52,62,64,50],// gap: candle[0].h=57 < candle[2].l=50 — BULLISH FVG
+];
+const CD_IDM = [
+  [55,60,61,53],[60,57,61,55],[57,55,58,50], // sweep low
+  [55,62,63,54],// rejection up
+  [62,68,69,60],[68,65,70,63],
+];
+const CD_FLOW = [
+  [44,50,52,42],[50,47,51,45],[47,55,56,46],[55,52,56,50],[52,60,61,51],
+  [60,57,61,55],[57,65,66,56],[65,62,66,60],[62,68,69,61],
+];
+const CD_BUYER = [
+  [50,55,57,48],[55,52,56,50],[52,48,54,46],[48,44,50,42],[44,40,46,38],
+  [40,37,42,35],[37,42,44,36],[42,50,51,41],[50,58,59,49],[58,65,66,57],
+  [65,70,72,63],[70,75,76,68],
+];
+const CD_SELLER = [
+  [60,55,62,53],[55,58,60,53],[58,65,66,56],[65,68,69,63],[68,62,69,60],
+  [62,58,63,56],[58,52,59,50],[52,47,54,45],[47,42,48,40],[42,38,44,36],
+];
+const CD_SCALPER = [
+  [44,50,52,42],[50,47,51,45],[47,55,56,46],[55,52,56,50],[52,48,53,46],
+  [48,56,57,47],[56,60,61,54],[60,58,62,56],[58,65,66,57],[65,62,66,60],
+  [62,68,69,61],[68,65,70,63],[65,70,71,64],[70,67,72,65],[67,72,73,66],
+];
+
+// ── Transition overlay ────────────────────────────
+function sceneTransition(ctx, p) {
+  const a = p < .08 ? easeO(p/.08) : p > .92 ? easeO(1-(p-.92)/.08) : 1;
+  ctx.save(); ctx.globalAlpha = 1-a; ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W,H); ctx.restore();
+}
+
+// ── Scene title ───────────────────────────────────
+function sceneTitle(ctx, title, subtitle, p) {
+  const a = easeO(seg(p,0,.12));
+  atxt(ctx, title, W/2, 58, 22, C.white, a, 'center', '700');
+  if(subtitle) atxt(ctx, subtitle, W/2, 80, 13, C.gray, a);
+  ctx.save(); ctx.globalAlpha=a*.3;
+  ctx.strokeStyle=C.accent; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-200,90); ctx.lineTo(W/2+200,90); ctx.stroke();
+  ctx.restore();
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 01 — INTRO (0–4s)
+// ════════════════════════════════════════════════════
+function s01(ctx, p) {
+  gradBG(ctx); gridBG(ctx, .03);
+  // Glow circle
+  ctx.save();
+  const g = ctx.createRadialGradient(W/2,H/2,0, W/2,H/2,260);
+  g.addColorStop(0,`rgba(33,150,243,${.12*easeO(p)})`);
+  g.addColorStop(1,'rgba(33,150,243,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H); ctx.restore();
+
+  // Icon box
+  const a1 = easeO(seg(p,0,.2));
+  ctx.save(); ctx.globalAlpha=a1;
+  rr(ctx, W/2-32, H/2-96, 64, 64, 16, 'rgba(33,150,243,0.15)', C.accent, 1.5);
+  txt(ctx,'K', W/2, H/2-46, 32, C.accent);
+  ctx.restore();
+
+  // Main title
+  atxt(ctx,'KENTO TRADING SUITE', W/2, H/2+10, 38, C.white, easeO(seg(p,.1,.4)),'center','800');
+  atxt(ctx,'Complete Handleiding — Van Basics Tot Geavanceerde Setup', W/2, H/2+42, 14, C.gray, easeO(seg(p,.25,.55)));
+
+  // Badges
+  const ba = easeO(seg(p,.4,.7));
+  const badges = ['18 Hoofdstukken','~5 Minuten','100% Visueel','Nederlandstalig'];
+  badges.forEach((b,i)=>{
+    const bx = W/2 - (badges.length-1)*80 + i*160;
+    ctx.save(); ctx.globalAlpha=ba;
+    rr(ctx,bx-56,H/2+66,112,26,13,'rgba(33,150,243,.1)','rgba(33,150,243,.25)',1);
+    txt(ctx,b,bx,H/2+84,12,C.accent);
+    ctx.restore();
+  });
+
+  // Press play hint
+  atxt(ctx,'▶  Druk op Play om te beginnen', W/2, H-36, 13, C.gray, easeO(seg(p,.6,1))*(.5+.5*Math.sin(Date.now()*.003)));
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 02 — CANDLESTICKS (4–15s)
+// ════════════════════════════════════════════════════
+function s02(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Stap 1: Candlesticks begrijpen','Wat is een candlestick?', p);
+
+  const cx = W/2, baseY = 290, cw = 44, bodyH = 100, wick = 40;
+
+  // Bullish candle
+  const a1 = easeO(seg(p,.1,.3));
+  const bulla = easeO(seg(p,.12,.35));
+  ctx.save(); ctx.globalAlpha=bulla;
+  // body draws up
+  const bh = lerp(0, bodyH, easeO(seg(p,.12,.32)));
+  ctx.fillStyle=C.green; ctx.fillRect(cx-180-cw/2, baseY+2-bh, cw, bh);
+  // wick
+  if(p>.28){
+    const wa = easeO(seg(p,.28,.4));
+    ctx.globalAlpha=wa; ctx.strokeStyle=C.green; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx-180, baseY-bodyH-wick*(easeO(seg(p,.28,.38)))); ctx.lineTo(cx-180, baseY+2); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Bearish candle
+  const bera = easeO(seg(p,.3,.55));
+  ctx.save(); ctx.globalAlpha=bera;
+  const brh = lerp(0, bodyH, easeO(seg(p,.3,.5)));
+  ctx.fillStyle=C.red; ctx.fillRect(cx+180-cw/2, baseY-bodyH+brh-bodyH, cw, brh);
+  if(p>.48){
+    const wa2 = easeO(seg(p,.48,.6));
+    ctx.globalAlpha=wa2; ctx.strokeStyle=C.red; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx+180, baseY-bodyH*2+wick*(easeO(seg(p,.48,.58)))); ctx.lineTo(cx+180, baseY+wick); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Labels bullish
+  const la = easeO(seg(p,.35,.55));
+  const labels_bull = [
+    { txt:'High (Wick)', x:cx-248, y:baseY-bodyH-wick+8 },
+    { txt:'Close (Body top)', x:cx-248, y:baseY-bodyH+8 },
+    { txt:'Open (Body bot)', x:cx-248, y:baseY+8 },
+    { txt:'Low (Wick)', x:cx-248, y:baseY+40 },
+  ];
+  labels_bull.forEach(l => {
+    atxt(ctx, l.txt, l.x, l.y, 11, C.green, la, 'right','400');
+    ctx.save(); ctx.globalAlpha=la*.4; ctx.strokeStyle=C.green; ctx.lineWidth=.5; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(cx-245,l.y-4); ctx.lineTo(cx-160,l.y-4); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+  });
+
+  // Labels bearish
+  const lb2 = easeO(seg(p,.52,.72));
+  const labels_bear = [
+    { txt:'High', x:cx+248, y:baseY-bodyH*2+8 },
+    { txt:'Open (top)', x:cx+248, y:baseY-bodyH*2+wick+8 },
+    { txt:'Close (bot)', x:cx+248, y:baseY-bodyH+wick+8 },
+    { txt:'Low', x:cx+248, y:baseY+wick+8 },
+  ];
+  labels_bear.forEach(l => {
+    atxt(ctx, l.txt, l.x, l.y, 11, C.red, lb2, 'left','400');
+  });
+
+  // Captions
+  atxt(ctx,'BULLISH CANDLE', cx-180, baseY+72, 13, C.green, easeO(seg(p,.4,.6)),'center','700');
+  atxt(ctx,'(Prijs ging omhoog)', cx-180, baseY+90, 11, C.gray, easeO(seg(p,.45,.65)));
+  atxt(ctx,'BEARISH CANDLE', cx+180, baseY+72, 13, C.red, easeO(seg(p,.55,.75)),'center','700');
+  atxt(ctx,'(Prijs ging omlaag)', cx+180, baseY+90, 11, C.gray, easeO(seg(p,.6,.8)));
+
+  // Bottom tip
+  const ta = easeO(seg(p,.7,1));
+  rr(ctx, W/2-280, H-76, 560, 38, 8, `rgba(33,150,243,${.08*ta})`, `rgba(33,150,243,${.2*ta})`, 1);
+  atxt(ctx,'💡  Elke candle = één tijdsperiode (bijv. 1 uur of 1 dag)', W/2, H-52, 12, C.white, ta);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 03 — MARKT STRUCTUUR (15–28s)
+// ════════════════════════════════════════════════════
+function s03(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Markt Structuur','Hoe lees je de richting van de markt?', p);
+  const ch = makeChart(30, 80, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  // Draw candles progressively (uptrend first 8, downtrend last 7)
+  const n = Math.floor(lerp(1, CD_STRUCTURE.length, easeO(seg(p,.1,.7))));
+  CD_STRUCTURE.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_STRUCTURE.length);
+    const bull = c[1]>=c[0];
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), bull, 22);
+  });
+
+  // Labels on uptrend
+  if(p>.3){
+    const la = easeO(seg(p,.3,.5));
+    [[2,52,'HH'],[4,55,'HH'],[7,65,'HH']].forEach(([i,price,label]) => {
+      if(i < n){
+        const x = ch.bX(i,CD_STRUCTURE.length);
+        labelBox(ctx,label, x, ch.pY(price)-16, C.green+'44', C.lime, la, 11);
+      }
+    });
+    [[1,42,'HL'],[3,47,'HL'],[6,60,'HL']].forEach(([i,price,label]) => {
+      if(i < n){
+        const x = ch.bX(i,CD_STRUCTURE.length);
+        labelBox(ctx,label, x, ch.pY(price)+28, C.green+'22', C.green, la, 11);
+      }
+    });
+  }
+
+  // Labels on downtrend
+  if(p>.55){
+    const la2 = easeO(seg(p,.55,.75));
+    [[10,64,'LH'],[12,55,'LH'],[14,46,'LH']].forEach(([i,price,label]) => {
+      if(i < n){
+        const x = ch.bX(i,CD_STRUCTURE.length);
+        labelBox(ctx,label, x, ch.pY(price)-16, C.red+'44', C.red, la2, 11);
+      }
+    });
+    [[11,53,'LL'],[13,44,'LL']].forEach(([i,price,label]) => {
+      if(i < n){
+        const x = ch.bX(i,CD_STRUCTURE.length);
+        labelBox(ctx,label, x, ch.pY(price)+28, C.red+'22', C.red, la2, 11);
+      }
+    });
+  }
+
+  // Legend
+  const la3 = easeO(seg(p,.65,.85));
+  [
+    { col:C.lime, label:'HH + HL = Uptrend (Bullish)' },
+    { col:C.red,  label:'LH + LL = Downtrend (Bearish)' },
+  ].forEach((item,i)=>{
+    const y = H-72+i*24;
+    ctx.save(); ctx.globalAlpha=la3;
+    rr(ctx,W/2-180, y-14, 360, 20, 5, item.col+'22');
+    ctx.fillStyle=item.col; ctx.fillRect(W/2-170, y-8, 8, 8);
+    txt(ctx, item.label, W/2-154, y+1, 12, C.white, 'left','400');
+    ctx.restore();
+  });
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 04 — BOS (28–44s)
+// ════════════════════════════════════════════════════
+function s04(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Break of Structure (BOS)','Prijs breekt een vorig swing high of low', p);
+  const ch = makeChart(34, 76, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_BOS.length, easeO(seg(p,.08,.6))));
+  CD_BOS.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_BOS.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 20);
+  });
+
+  // Swing high line (at candle 8, price 62)
+  if(p>.35){
+    const la = easeO(seg(p,.35,.55));
+    const y_sh = ch.pY(62);
+    ctx.save(); ctx.globalAlpha=la;
+    ctx.strokeStyle=C.yellow; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(ch.bX(7,CD_BOS.length),y_sh); ctx.lineTo(ch.r,y_sh); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,'Swing High', ch.l+96, y_sh-8, 11, C.yellow, la,'left','400');
+    ctx.restore();
+  }
+
+  // BOS label at candle 9
+  if(n >= 10 && p>.5){
+    const la = easeO(seg(p,.5,.7));
+    const x = ch.bX(9, CD_BOS.length);
+    // Green BOS explosion
+    ctx.save(); ctx.globalAlpha=la*.3;
+    const g = ctx.createRadialGradient(x, ch.pY(70), 0, x, ch.pY(70), 50);
+    g.addColorStop(0,'rgba(0,200,83,.5)'); g.addColorStop(1,'rgba(0,200,83,0)');
+    ctx.fillStyle=g; ctx.fillRect(x-50, ch.pY(70)-50, 100, 100);
+    ctx.restore();
+    labelBox(ctx, 'BOS ↑', x, ch.pY(71)-24, C.lime+'dd', '#0d1117', la, 13);
+  }
+
+  // Arrow
+  if(p>.62){
+    const la = easeO(seg(p,.62,.78));
+    arrow(ctx, ch.bX(8,CD_BOS.length), ch.pY(59), ch.bX(10,CD_BOS.length), ch.pY(68), C.lime, la);
+  }
+
+  // Explanation
+  const ea = easeO(seg(p,.65,1));
+  rr(ctx, 60, H-80, W-120, 46, 8, `rgba(0,200,83,${.07*ea})`, `rgba(0,200,83,${.2*ea})`, 1);
+  atxt(ctx,'BOS = Prijs sluit boven/onder een vorig swing punt → bevestigt trend richting', W/2, H-52, 13, C.white, ea);
+  atxt(ctx,'Bullish BOS: sluit boven swing high  |  Bearish BOS: sluit onder swing low', W/2, H-34, 11, C.gray, ea*.8);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 05 — CHOCH (44–58s)
+// ════════════════════════════════════════════════════
+function s05(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Change of Character (CHoCH)','Eerste teken van trendomkering', p);
+  const ch = makeChart(34, 70, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_CHOCH.length, easeO(seg(p,.08,.65))));
+  CD_CHOCH.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_CHOCH.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 26);
+  });
+
+  // Last HL line (candle 4, low ~48)
+  if(p>.3){
+    const la = easeO(seg(p,.3,.5));
+    const y_hl = ch.pY(48);
+    ctx.save(); ctx.globalAlpha=la;
+    ctx.strokeStyle=C.green; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(ch.bX(3,CD_CHOCH.length), y_hl); ctx.lineTo(ch.r, y_hl); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,'Laatste HL', ch.l+80, y_hl-9, 11, C.green, la,'left','400');
+    ctx.restore();
+  }
+
+  // CHoCH label
+  if(n >= 9 && p>.55){
+    const la = easeO(seg(p,.55,.75));
+    const x = ch.bX(8, CD_CHOCH.length);
+    ctx.save(); ctx.globalAlpha=la*.25;
+    const g = ctx.createRadialGradient(x, ch.pY(42), 0, x, ch.pY(42), 60);
+    g.addColorStop(0,'rgba(242,54,69,.6)'); g.addColorStop(1,'rgba(242,54,69,0)');
+    ctx.fillStyle=g; ctx.fillRect(x-60,ch.pY(42)-60,120,120);
+    ctx.restore();
+    labelBox(ctx,'CHoCH ↓', x, ch.pY(42)+24, C.red+'dd','#0d1117', la, 13);
+  }
+
+  // Explanation
+  const ea = easeO(seg(p,.7,1));
+  rr(ctx, 60, H-80, W-120, 46, 8, `rgba(242,54,69,${.07*ea})`, `rgba(242,54,69,${.2*ea})`,1);
+  atxt(ctx,'CHoCH = Prijs breekt het laatste Higher Low → uptrend verliest kracht', W/2, H-52, 13, C.white, ea);
+  atxt(ctx,'CHoCH ≠ BOS — het is de eerste waarschuwing, nog geen bevestiging', W/2, H-34, 11, C.gray, ea*.8);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 06 — BIAS SYSTEEM (58–72s)
+// ════════════════════════════════════════════════════
+function s06(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Bias Systeem','Altijd weten in welke richting je handelt', p);
+
+  const items = [
+    { label:'Bullish Bias', desc:'Alleen long setups zoeken', col:C.green, icon:'↑' },
+    { label:'Bearish Bias', desc:'Alleen short setups zoeken', col:C.red,   icon:'↓' },
+    { label:'Neutraal',     desc:'Geen positie innemen',      col:C.yellow, icon:'—' },
+  ];
+  items.forEach((item,i)=>{
+    const delay = .1+i*.18;
+    const a = easeO(seg(p, delay, delay+.25));
+    const bx = W/2 + (i-1)*240, by = H/2+10;
+    ctx.save(); ctx.globalAlpha=a;
+    rr(ctx, bx-88,by-80,176,160,12, item.col+'18', item.col+'55', 1.5);
+    // Icon
+    txt(ctx, item.icon, bx, by-28, 40, item.col,'center','800');
+    txt(ctx, item.label, bx, by+16, 15, C.white,'center','700');
+    txt(ctx, item.desc, bx, by+36, 11, C.gray);
+    ctx.restore();
+  });
+
+  // Rule
+  const ra = easeO(seg(p,.65,.88));
+  rr(ctx, W/2-300, H-76, 600, 38, 8, `rgba(33,150,243,${.08*ra})`, `rgba(33,150,243,${.25*ra})`,1);
+  atxt(ctx,'📌  Bias bepaal je via KENTO SUITE v1 → Bias indicator bovenaan de chart', W/2, H-52, 13, C.white, ra);
+
+  // BOS/CHoCH arrows
+  const aa = easeO(seg(p,.45,.65));
+  atxt(ctx,'BOS ↑ telt → Bullish', W/2-200, H-110, 12, C.lime, aa);
+  atxt(ctx,'CHoCH ↓ telt → Bearish', W/2+200, H-110, 12, C.red, aa);
+  atxt(ctx,'Score systeem:', W/2, H-128, 12, C.gray, aa);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 07 — PREMIUM / DISCOUNT (72–88s)
+// ════════════════════════════════════════════════════
+function s07(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Premium & Discount Zones','Wanneer is iets duur of goedkoop?', p);
+  const ch = makeChart(30, 80, 100, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const mid = ch.pY(55); // midpoint
+
+  // Zones fade in
+  if(p>.1){
+    const za = easeO(seg(p,.1,.35));
+    ctx.save(); ctx.globalAlpha=.12*za;
+    ctx.fillStyle=C.red; ctx.fillRect(ch.l, ch.t, ch.cw, mid-ch.t);
+    ctx.fillStyle=C.green; ctx.fillRect(ch.l, mid, ch.cw, ch.b-mid);
+    ctx.restore();
+    // Midline
+    ctx.save(); ctx.globalAlpha=za;
+    ctx.strokeStyle=C.yellow; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(lerp(ch.r,ch.l,1-za*easeO(seg(p,.1,.35))),mid); ctx.lineTo(ch.r,mid); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    // Zone labels
+    atxt(ctx,'PREMIUM (verkopen)', W/2, mid-24, 15, C.red, za,'center','700');
+    atxt(ctx,'Boven 50% = duur', W/2, mid-6, 11, C.red+'cc', za);
+    atxt(ctx,'DISCOUNT (kopen)', W/2, mid+20, 15, C.green, za,'center','700');
+    atxt(ctx,'Onder 50% = goedkoop', W/2, mid+38, 11, C.green+'cc', za);
+  }
+
+  // Fib 0.5 label
+  if(p>.3){
+    const la = easeO(seg(p,.3,.5));
+    labelBox(ctx,'0.500  (50%)', ch.r-10, mid, C.yellow+'33', C.yellow, la, 11);
+  }
+
+  // Price arrow going down into discount
+  if(p>.55){
+    const pa = easeO(seg(p,.55,.75));
+    const startX = ch.bX(3, 8), startY = mid-60;
+    const endX = ch.bX(5, 8), endY = mid+80;
+    arrow(ctx, lerp(startX,startX,pa), lerp(startY,startY,pa), lerp(startX,endX,pa), lerp(startY,endY,pa), C.green, pa);
+    labelBox(ctx,'Entry hier!', endX+30, lerp(startY,endY,pa), C.green+'88', C.white, pa, 11);
+  }
+
+  // Rule
+  const ra = easeO(seg(p,.72,1));
+  rr(ctx, 60, H-72, W-120, 38, 8, `rgba(33,150,243,${.08*ra})`,`rgba(33,150,243,${.2*ra})`,1);
+  atxt(ctx,'🎯  Koop in Discount zone — Verkoop/Short in Premium zone', W/2, H-48, 13, C.white, ra);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 08 — FIBONACCI ZONES (88–105s)
+// ════════════════════════════════════════════════════
+function s08(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Fibonacci Zones','De exacte Buy Zone & Sell Zone', p);
+  const ch = makeChart(28, 78, 100, W-100, 105, 450);
+  chartGrid(ctx, ch);
+
+  // Fib levels
+  const fibs = [
+    { level:0.0,   price:75, label:'0.0',   col:C.yellow },
+    { level:0.236, price:69, label:'0.236', col:C.red    },
+    { level:0.382, price:63, label:'0.382', col:C.red    },
+    { level:0.500, price:58, label:'0.500', col:C.yellow },
+    { level:0.618, price:52, label:'0.618', col:C.green  },
+    { level:0.786, price:43, label:'0.786', col:C.green  },
+    { level:1.0,   price:33, label:'1.0',   col:C.yellow },
+  ];
+
+  fibs.forEach((f,i)=>{
+    const da = easeO(seg(p, .08+i*.06, .15+i*.06));
+    ctx.save(); ctx.globalAlpha=da;
+    ctx.strokeStyle=f.col+'99'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(ch.l, ch.pY(f.price)); ctx.lineTo(ch.r, ch.pY(f.price)); ctx.stroke();
+    ctx.setLineDash([]);
+    txt(ctx, f.label, ch.r+8, ch.pY(f.price)+4, 11, f.col,'left','400');
+    ctx.restore();
+  });
+
+  // Buy zone box
+  if(p>.45){
+    const za = easeO(seg(p,.45,.62));
+    ctx.save(); ctx.globalAlpha=.18*za;
+    ctx.fillStyle=C.green;
+    ctx.fillRect(ch.l, ch.pY(52), ch.cw, ch.pY(43)-ch.pY(52));
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha=za;
+    ctx.strokeStyle=C.green+'88'; ctx.lineWidth=1.5;
+    ctx.strokeRect(ch.l, ch.pY(52), ch.cw, ch.pY(43)-ch.pY(52));
+    ctx.restore();
+    atxt(ctx,'BUY ZONE', W/2, (ch.pY(52)+ch.pY(43))/2+5, 14, C.lime, za,'center','700');
+    atxt(ctx,'0.618 – 0.786', W/2, (ch.pY(52)+ch.pY(43))/2+22, 11, C.green, za);
+  }
+
+  // Sell zone box
+  if(p>.6){
+    const za = easeO(seg(p,.6,.77));
+    ctx.save(); ctx.globalAlpha=.15*za;
+    ctx.fillStyle=C.orange;
+    ctx.fillRect(ch.l, ch.pY(69), ch.cw, ch.pY(63)-ch.pY(69));
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha=za;
+    ctx.strokeStyle=C.orange+'88'; ctx.lineWidth=1.5;
+    ctx.strokeRect(ch.l, ch.pY(69), ch.cw, ch.pY(63)-ch.pY(69));
+    ctx.restore();
+    atxt(ctx,'SELL ZONE', W/2, (ch.pY(69)+ch.pY(63))/2+5, 14, C.orange, za,'center','700');
+    atxt(ctx,'0.236 – 0.382', W/2, (ch.pY(69)+ch.pY(63))/2+22, 11, C.orange, za);
+  }
+
+  // Entry dots
+  if(p>.72){
+    const da = easeO(seg(p,.72,.88));
+    const entryY = ch.pY(48);
+    ctx.save(); ctx.globalAlpha=da;
+    ctx.fillStyle=C.lime;
+    ctx.beginPath(); ctx.arc(W/2, entryY, 8, 0, Math.PI*2); ctx.fill();
+    atxt(ctx,'LONG ENTRY', W/2, entryY-18, 12, C.lime, da,'center','700');
+    ctx.restore();
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 09 — ORDER BLOCKS (105–120s)
+// ════════════════════════════════════════════════════
+function s09(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Order Blocks (OB)','Institutionele koop/verkoopzone', p);
+  const ch = makeChart(36, 74, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_OB.length, easeO(seg(p,.08,.65))));
+  CD_OB.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_OB.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 22);
+  });
+
+  // Swing high dotted line at ~58
+  if(p>.3){
+    const la = easeO(seg(p,.3,.5));
+    const y_sh = ch.pY(58);
+    ctx.save(); ctx.globalAlpha=la;
+    ctx.strokeStyle=C.yellow+'99'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(ch.l,y_sh); ctx.lineTo(ch.r,y_sh); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,'Swing High', ch.l+60, y_sh-8, 11, C.yellow, la,'left','400');
+    ctx.restore();
+  }
+
+  // BOS label
+  if(n>=9 && p>.45){
+    const la = easeO(seg(p,.45,.62));
+    labelBox(ctx,'BOS ↑', ch.bX(8,CD_OB.length), ch.pY(58)-22, C.lime+'cc','#0d1117', la, 12);
+  }
+
+  // OB box on candle 7 (bearish candle just before BOS)
+  if(p>.55){
+    const oba = easeO(seg(p,.55,.75));
+    const obX = ch.bX(7, CD_OB.length);
+    const obW = 26;
+    ctx.save(); ctx.globalAlpha=.25*oba;
+    ctx.fillStyle=C.teal;
+    ctx.fillRect(obX-obW/2, ch.pY(CD_OB[7][2]), obW, ch.pY(CD_OB[7][3])-ch.pY(CD_OB[7][2]));
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha=oba;
+    ctx.strokeStyle=C.teal+'cc'; ctx.lineWidth=1.5;
+    ctx.strokeRect(obX-obW/2, ch.pY(CD_OB[7][2]), obW, ch.pY(CD_OB[7][3])-ch.pY(CD_OB[7][2]));
+    labelBox(ctx,'Bull OB', obX, ch.pY(CD_OB[7][3])+20, C.teal+'dd','#0d1117', oba, 11);
+    ctx.restore();
+  }
+
+  // Explanation
+  const ea = easeO(seg(p,.72,1));
+  rr(ctx, 60, H-80, W-120, 46, 8, `rgba(0,188,212,${.07*ea})`,`rgba(0,188,212,${.2*ea})`,1);
+  atxt(ctx,'OB = De laatste bearish candle VOOR een bullish BOS', W/2, H-54, 13, C.white, ea);
+  atxt(ctx,'Dit is waar grote spelers hun orders hebben geplaatst → sterk bounce niveau', W/2, H-36, 11, C.gray, ea*.8);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 10 — FAIR VALUE GAPS (120–135s)
+// ════════════════════════════════════════════════════
+function s10(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Fair Value Gaps (FVG)','Prijs laat een "gat" achter in de markt', p);
+
+  // 3 large candles centered
+  const cx = W/2, baseY = 280, cw = 60, scale = 180;
+  const prices = CD_FVG;
+  const minP=40, maxP=68, rng=maxP-minP;
+  const pY = pr => baseY + scale*(1-(pr-minP)/rng) - scale/2;
+
+  const n = Math.min(3, Math.floor(lerp(.1,3.5, easeO(seg(p,.1,.55)))));
+
+  // Positions
+  const xs = [cx-180, cx, cx+180];
+  for(let i=0;i<n;i++){
+    const c = prices[i];
+    const a = easeO(seg(p, .1+i*.14, .18+i*.14));
+    ctx.save(); ctx.globalAlpha=a;
+    candle(ctx, xs[i], pY(c[0]), pY(c[1]), pY(c[2]), pY(c[3]), c[1]>=c[0], cw);
+    ctx.restore();
+  }
+
+  // FVG box between candle 0 high (57) and candle 2 low (50)
+  if(p>.5){
+    const fa = easeO(seg(p,.5,.7));
+    const top = pY(57), bot = pY(50);
+    // Animated width expand
+    const bw = lerp(0, 600, easeO(seg(p,.5,.7)));
+    ctx.save(); ctx.globalAlpha=.25*fa;
+    ctx.fillStyle=C.accent; ctx.fillRect(cx-bw/2, top, bw, bot-top);
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha=fa;
+    ctx.strokeStyle=C.accent+'99'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(cx-bw/2,top); ctx.lineTo(cx+bw/2,top); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-bw/2,bot); ctx.lineTo(cx+bw/2,bot); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,'FVG', cx-300, (top+bot)/2+5, 16, C.accent, fa,'center','700');
+    atxt(ctx,'Gap', cx, (top+bot)/2+5, 14, C.accent, fa,'center','700');
+    ctx.restore();
+    // Arrows showing gap
+    const aa = easeO(seg(p,.65,.82));
+    atxt(ctx,'▲ Candle 3 opent hier', cx+130, bot+10, 11, C.white, aa,'left','400');
+    atxt(ctx,'▼ Candle 1 sluit hier',  cx+130, top+10, 11, C.white, aa,'left','400');
+  }
+
+  // Explanation
+  const ea = easeO(seg(p,.72,1));
+  rr(ctx, 60, H-80, W-120, 46, 8, `rgba(33,150,243,${.07*ea})`,`rgba(33,150,243,${.2*ea})`,1);
+  atxt(ctx,'FVG = Candle 1 high overlapt NIET met candle 3 low → prijs "vergat" dit niveau', W/2, H-54, 13, C.white, ea);
+  atxt(ctx,'Prijs keert vaak terug naar een FVG om het te vullen → sterk support/resistance', W/2, H-36, 11, C.gray, ea*.8);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 11 — INDUCEMENT (135–150s)
+// ════════════════════════════════════════════════════
+function s11(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Inducement (IDM)','De valse break die liquiditeit pakt', p);
+  const ch = makeChart(42, 74, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_IDM.length, easeO(seg(p,.08,.65))));
+  CD_IDM.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_IDM.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 26);
+  });
+
+  // Swing low line at 55
+  if(p>.2){
+    const la = easeO(seg(p,.2,.4));
+    const y_sl = ch.pY(55);
+    ctx.save(); ctx.globalAlpha=la;
+    ctx.strokeStyle=C.green+'99'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(ch.l,y_sl); ctx.lineTo(ch.r,y_sl); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,'Swing Low', ch.l+60, y_sl+14, 11, C.green, la,'left','400');
+    ctx.restore();
+  }
+
+  // Wick sweeps below, annotation
+  if(n>=3 && p>.45){
+    const wa = easeO(seg(p,.45,.62));
+    // "Sweep" zone highlight
+    ctx.save(); ctx.globalAlpha=.12*wa;
+    ctx.fillStyle=C.red;
+    ctx.fillRect(ch.bX(2,CD_IDM.length)-20, ch.pY(55), 40, ch.pY(50)-ch.pY(55));
+    ctx.restore();
+    labelBox(ctx,'SWEEP ↓', ch.bX(2,CD_IDM.length), ch.pY(50)+28, C.red+'cc','#0d1117', wa, 11);
+  }
+
+  // IDM label after candle 3
+  if(n>=4 && p>.55){
+    const la = easeO(seg(p,.55,.72));
+    const x = ch.bX(3, CD_IDM.length);
+    ctx.save(); ctx.globalAlpha=la*.3;
+    const g = ctx.createRadialGradient(x,ch.pY(62),0,x,ch.pY(62),50);
+    g.addColorStop(0,'rgba(0,200,83,.6)'); g.addColorStop(1,'rgba(0,200,83,0)');
+    ctx.fillStyle=g; ctx.fillRect(x-50,ch.pY(62)-50,100,100); ctx.restore();
+    labelBox(ctx,'IDM ▲', x, ch.pY(62)-20, C.lime+'cc','#0d1117', la, 14);
+  }
+
+  // Explanation
+  const ea = easeO(seg(p,.7,1));
+  rr(ctx, 60, H-86, W-120, 52, 8, `rgba(0,200,83,${.07*ea})`,`rgba(0,200,83,${.2*ea})`,1);
+  atxt(ctx,'IDM = Wick breekt een swing punt maar candle SLUIT terug → vals break', W/2, H-60, 13, C.white, ea);
+  atxt(ctx,'De markt haalt first "stop losses" op voordat de echte move begint', W/2, H-42, 11, C.gray, ea*.8);
+  atxt(ctx,'IDM = bevestiging dat de echte move komen gaat', W/2, H-26, 11, C.lime, ea*.6);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 12 — ORDERFLOW & HVN (150–165s)
+// ════════════════════════════════════════════════════
+function s12(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Orderflow & HVN','Zie precies waar de meeste kopers/verkopers zitten', p);
+  const ch = makeChart(36, 74, 80, W-80, 105, 380);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_FLOW.length, easeO(seg(p,.08,.55))));
+  CD_FLOW.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_FLOW.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 22);
+  });
+
+  // Volume bars at bottom
+  const volData = [40,35,55,42,60,38,70,52,80];
+  const vBase = 460, vMax = 60;
+  if(p>.15){
+    const va = easeO(seg(p,.15,.4));
+    volData.slice(0,n).forEach((v,i) => {
+      const x = ch.bX(i, CD_FLOW.length);
+      const bull = CD_FLOW[i][1] >= CD_FLOW[i][0];
+      const vH = v/100*vMax*va;
+      ctx.save(); ctx.globalAlpha=.7*va;
+      ctx.fillStyle = bull ? C.green+'88' : C.red+'88';
+      ctx.fillRect(x-10, vBase-vH, 20, vH);
+      ctx.restore();
+    });
+    atxt(ctx,'Volume Delta', ch.l+40, vBase+16, 11, C.gray, va,'left','400');
+  }
+
+  // HVN lines
+  const hvns = [{ price:65, label:'HVN 1', a_start:.45, opacity:1 },
+                { price:52, label:'HVN 2', a_start:.52, opacity:.7 },
+                { price:43, label:'HVN 3', a_start:.58, opacity:.5 }];
+  hvns.forEach(h => {
+    const ha = easeO(seg(p, h.a_start, h.a_start+.2));
+    const y = ch.pY(h.price);
+    ctx.save(); ctx.globalAlpha=ha*h.opacity;
+    ctx.strokeStyle=C.orange; ctx.lineWidth=h.opacity==1?2:1; ctx.setLineDash([3,3]);
+    const drawW = lerp(ch.l, ch.r, easeO(seg(p,h.a_start,h.a_start+.15)));
+    ctx.beginPath(); ctx.moveTo(ch.l,y); ctx.lineTo(drawW,y); ctx.stroke();
+    ctx.setLineDash([]);
+    atxt(ctx,h.label, ch.r+10, y+4, 11, C.orange, ha,'left','400');
+    ctx.restore();
+  });
+
+  // Arrows + annotations
+  if(p>.7){
+    const aa = easeO(seg(p,.7,.88));
+    rr(ctx,W/2-290,H-80,580,46,8,`rgba(255,152,0,${.07*aa})`,`rgba(255,152,0,${.2*aa})`,1);
+    atxt(ctx,'HVN = High Volume Node = niveau waar de meeste trades zijn uitgevoerd', W/2,H-55,13,C.white,aa);
+    atxt(ctx,'Boven prijs = weerstand  |  Onder prijs = support  |  HVN 1 = sterkste niveau', W/2,H-37,11,C.gray,aa*.8);
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 13 — BUYER SL/TP (165–185s)
+// ════════════════════════════════════════════════════
+function s13(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Buyer Setup: Entry → SL → TP','Complete long setup stap voor stap', p);
+  const ch = makeChart(28, 82, 100, W-120, 105, 450);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_BUYER.length, easeO(seg(p,.08,.5))));
+  CD_BUYER.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_BUYER.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 16);
+  });
+
+  // Fib levels
+  if(p>.2){
+    const fa = easeO(seg(p,.2,.38));
+    const fibLines=[
+      {p:75,c:C.yellow,dash:[5,3]},{p:69,c:C.red+'77',dash:[4,3]},
+      {p:63,c:C.red+'99',dash:[4,3]},{p:58,c:C.yellow+'77',dash:[3,3]},
+      {p:52,c:C.green+'99',dash:[4,3]},{p:43,c:C.green+'bb',dash:[4,3]},
+      {p:33,c:C.yellow,dash:[5,3]}
+    ];
+    fibLines.forEach(f=>{
+      ctx.save();ctx.globalAlpha=fa;
+      ctx.strokeStyle=f.c;ctx.lineWidth=1;ctx.setLineDash(f.dash);
+      ctx.beginPath();ctx.moveTo(ch.l,ch.pY(f.p));ctx.lineTo(ch.r,ch.pY(f.p));ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+    });
+  }
+
+  // Buy zone
+  if(p>.35){
+    const za = easeO(seg(p,.35,.52));
+    ctx.save();ctx.globalAlpha=.18*za;ctx.fillStyle=C.green;
+    ctx.fillRect(ch.l,ch.pY(52),ch.cw,ch.pY(43)-ch.pY(52));ctx.restore();
+  }
+
+  // SL line
+  if(p>.45){
+    const sa = easeO(seg(p,.45,.6));
+    ctx.save();ctx.globalAlpha=sa;
+    ctx.strokeStyle=C.red;ctx.lineWidth=2;ctx.setLineDash([5,3]);
+    ctx.beginPath();ctx.moveTo(ch.l,ch.pY(31));ctx.lineTo(ch.r,ch.pY(31));ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    labelBox(ctx,'SL', ch.r+12, ch.pY(31), C.red+'cc','#fff', sa, 12);
+  }
+
+  // TP lines
+  if(p>.55){
+    const tpa = easeO(seg(p,.55,.7));
+    [[63,'TP2','#26a69a88'],[69,'TP1','#26a69aaa'],[75,'TP3',C.green]].forEach(([pr,label,col])=>{
+      ctx.save();ctx.globalAlpha=tpa;
+      ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
+      ctx.beginPath();ctx.moveTo(ch.l,ch.pY(pr));ctx.lineTo(ch.r,ch.pY(pr));ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+      labelBox(ctx,label, ch.r+12, ch.pY(pr), col+'dd','#fff', tpa, 11);
+    });
+  }
+
+  // Entry arrow
+  if(n>=8 && p>.62){
+    const ea2 = easeO(seg(p,.62,.78));
+    const ex = ch.bX(7,CD_BUYER.length), ey = ch.pY(45);
+    arrow(ctx, ex, ey+40, ex, ey+8, C.lime, ea2);
+    labelBox(ctx,'ENTRY', ex, ey+52, C.lime+'cc','#0d1117', ea2, 12);
+  }
+
+  // Summary
+  const sa2 = easeO(seg(p,.78,1));
+  const items2=[
+    {col:C.green,t:'SL onder swing low − 0.5× ATR'},
+    {col:C.green+'aa',t:'TP1 = 0.500  (50% sluiten)'},
+    {col:C.green+'88',t:'TP2 = 0.382  (30% sluiten)'},
+    {col:C.green+'66',t:'TP3 = 0.0  (20% laten lopen)'},
+  ];
+  items2.forEach((it,i)=>{
+    const y = H-68+i*16;
+    ctx.save();ctx.globalAlpha=sa2;
+    ctx.fillStyle=it.col;ctx.fillRect(W/2-240,y-8,8,8);
+    txt(ctx,it.t,W/2-224,y,11,C.white,'left','400');
+    ctx.restore();
+  });
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 14 — SELLER SL/TP (185–205s)
+// ════════════════════════════════════════════════════
+function s14(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Seller Setup: Short Entry','Complete short setup stap voor stap', p);
+  const ch = makeChart(28, 76, 100, W-120, 105, 450);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_SELLER.length, easeO(seg(p,.08,.5))));
+  CD_SELLER.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_SELLER.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 20);
+  });
+
+  // Fib levels
+  if(p>.2){
+    const fa=easeO(seg(p,.2,.38));
+    [[68,C.yellow,'5,3'],[65,C.red+'bb','4,3'],[60,C.red+'99','4,3'],
+     [58,C.yellow+'77','3,3'],[52,C.green+'77','4,3'],[43,C.green+'99','4,3'],[33,C.yellow,'5,3']
+    ].forEach(([pr,col])=>{
+      ctx.save();ctx.globalAlpha=fa;ctx.strokeStyle=col;ctx.lineWidth=1;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(ch.l,ch.pY(pr));ctx.lineTo(ch.r,ch.pY(pr));ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+    });
+  }
+
+  // Sell zone
+  if(p>.35){
+    const za=easeO(seg(p,.35,.52));
+    ctx.save();ctx.globalAlpha=.15*za;ctx.fillStyle=C.orange;
+    ctx.fillRect(ch.l,ch.pY(65),ch.cw,ch.pY(60)-ch.pY(65));ctx.restore();
+    atxt(ctx,'SELL ZONE',W/2,(ch.pY(65)+ch.pY(60))/2+5,13,C.orange,za,'center','700');
+  }
+
+  // SL above fib 0.0 (68 + buffer)
+  if(p>.45){
+    const sa=easeO(seg(p,.45,.6));
+    ctx.save();ctx.globalAlpha=sa;ctx.strokeStyle=C.red;ctx.lineWidth=2;ctx.setLineDash([5,3]);
+    ctx.beginPath();ctx.moveTo(ch.l,ch.pY(70));ctx.lineTo(ch.r,ch.pY(70));ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    labelBox(ctx,'S-SL',ch.r+12,ch.pY(70),C.red+'cc','#fff',sa,12);
+  }
+
+  // TP lines going down
+  if(p>.55){
+    const tpa=easeO(seg(p,.55,.7));
+    [[58,'S-TP1',C.orange+'aa'],[52,'S-TP2',C.orange+'cc'],[33,'S-TP3',C.orange]].forEach(([pr,label,col])=>{
+      ctx.save();ctx.globalAlpha=tpa;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
+      ctx.beginPath();ctx.moveTo(ch.l,ch.pY(pr));ctx.lineTo(ch.r,ch.pY(pr));ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+      labelBox(ctx,label,ch.r+12,ch.pY(pr),col+'dd','#fff',tpa,11);
+    });
+  }
+
+  // Entry arrow (downward)
+  if(n>=4 && p>.63){
+    const ea2=easeO(seg(p,.63,.78));
+    const ex=ch.bX(3,CD_SELLER.length), ey=ch.pY(63);
+    arrow(ctx, ex, ey-40, ex, ey-8, C.red, ea2);
+    labelBox(ctx,'SHORT ENTRY',ex,ey-52,C.red+'cc','#fff',ea2,12);
+  }
+
+  // Summary
+  const sa2=easeO(seg(p,.78,1));
+  const its=[
+    {col:C.red,t:'SL boven swing high + 0.5× ATR'},
+    {col:C.orange+'aa',t:'S-TP1 = 0.500  (50% sluiten)'},
+    {col:C.orange+'88',t:'S-TP2 = 0.618  (30% sluiten)'},
+    {col:C.orange+'66',t:'S-TP3 = 1.0  (20% laten lopen)'},
+  ];
+  its.forEach((it,i)=>{
+    const y=H-68+i*16;
+    ctx.save();ctx.globalAlpha=sa2;
+    ctx.fillStyle=it.col;ctx.fillRect(W/2-240,y-8,8,8);
+    txt(ctx,it.t,W/2-224,y,11,C.white,'left','400');ctx.restore();
+  });
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 15 — COMBINED SETUP (205–235s)
+// ════════════════════════════════════════════════════
+function s15(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Complete Setup Checklist','Alle stappen voor één perfecte entry', p);
+
+  const steps = [
+    { icon:'↑', label:'Bias',           check:'BULLISH',        col:C.green, delay:.08 },
+    { icon:'📐',label:'Fibonacci Zone', check:'IN BUY ZONE',    col:C.green, delay:.2  },
+    { icon:'⬛',label:'Order Block',    check:'OB AANWEZIG',    col:C.teal,  delay:.32 },
+    { icon:'▲', label:'Inducement',     check:'IDM SWEEP ✓',    col:C.lime,  delay:.44 },
+    { icon:'📊',label:'Orderflow',      check:'DELTA POSITIEF', col:C.accent,delay:.56 },
+    { icon:'🎯',label:'Entry',          check:'UITVOEREN!',     col:C.orange,delay:.72 },
+  ];
+
+  steps.forEach((s,i)=>{
+    const a = easeO(seg(p, s.delay, s.delay+.15));
+    const y = 140+i*58;
+    ctx.save(); ctx.globalAlpha=a;
+    // Row bg
+    rr(ctx, W/2-320, y-20, 640, 44, 8, s.col+'11', s.col+'33', 1);
+    // Icon + label
+    txt(ctx, s.icon, W/2-290, y+8, 16, s.col, 'left','400');
+    txt(ctx, s.label, W/2-262, y+8, 14, C.white, 'left','600');
+    // Check badge
+    rr(ctx, W/2+140, y-10, 160, 28, 14, s.col+'44', s.col, 1);
+    txt(ctx, s.check, W/2+220, y+8, 12, s.col, 'center','700');
+    // Checkmark
+    const ca = easeO(seg(p, s.delay+.12, s.delay+.2));
+    ctx.globalAlpha=ca;
+    txt(ctx,'✓', W/2-310, y+8, 16, s.col);
+    ctx.restore();
+  });
+
+  // Entry arrow/pulse on last item
+  if(p>.85){
+    const pa=(.5+.5*Math.sin(Date.now()*.006))*easeO(seg(p,.85,1));
+    ctx.save(); ctx.globalAlpha=pa;
+    const g=ctx.createRadialGradient(W/2,482,0,W/2,482,80);
+    g.addColorStop(0,`rgba(255,152,0,.3)`); g.addColorStop(1,'rgba(255,152,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(W/2-80,402,160,160); ctx.restore();
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 16 — SCALPER SIGNALS (235–255s)
+// ════════════════════════════════════════════════════
+function s16(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Scalper Signalen','Visuele koop/verkoop indicaties op de chart', p);
+  const ch = makeChart(36, 78, 80, W-80, 105, 440);
+  chartGrid(ctx, ch);
+
+  const n = Math.floor(lerp(1, CD_SCALPER.length, easeO(seg(p,.08,.6))));
+  CD_SCALPER.slice(0,n).forEach((c,i) => {
+    const x = ch.bX(i, CD_SCALPER.length);
+    candle(ctx, x, ch.pY(c[0]), ch.pY(c[1]), ch.pY(c[2]), ch.pY(c[3]), c[1]>=c[0], 18);
+  });
+
+  // BUY signals (green circles under candles)
+  const buySigs = [[3,46],[7,58],[12,68]];
+  buySigs.forEach(([ci,price],si) => {
+    if(n>ci){
+      const sa = easeO(seg(p,.3+si*.08,.38+si*.08));
+      const x = ch.bX(ci, CD_SCALPER.length);
+      ctx.save(); ctx.globalAlpha=sa;
+      ctx.fillStyle=C.lime;
+      ctx.beginPath(); ctx.arc(x, ch.pY(price)+24, 7, 0, Math.PI*2); ctx.fill();
+      atxt(ctx,'▲ BUY', x, ch.pY(price)+44, 10, C.lime, sa,'center','700');
+      ctx.restore();
+    }
+  });
+
+  // SELL signals (red circles above candles)
+  const sellSigs = [[5,60],[9,66]];
+  sellSigs.forEach(([ci,price],si) => {
+    if(n>ci){
+      const sa = easeO(seg(p,.5+si*.08,.58+si*.08));
+      const x = ch.bX(ci, CD_SCALPER.length);
+      ctx.save(); ctx.globalAlpha=sa;
+      ctx.fillStyle=C.red;
+      ctx.beginPath(); ctx.arc(x, ch.pY(price)-20, 7, 0, Math.PI*2); ctx.fill();
+      atxt(ctx,'▼ SELL', x, ch.pY(price)-40, 10, C.red, sa,'center','700');
+      ctx.restore();
+    }
+  });
+
+  // Explanation
+  const ea=easeO(seg(p,.72,1));
+  rr(ctx,60,H-80,W-120,46,8,`rgba(33,150,243,${.07*ea})`,`rgba(33,150,243,${.2*ea})`,1);
+  atxt(ctx,'Signalen zijn REACTIEF — ze verschijnen NA een BOS in de goede bias richting', W/2, H-54, 13, C.white, ea);
+  atxt(ctx,'Combineer altijd met fib zone + OB/IDM voor de sterkste entries', W/2, H-36, 11, C.gray, ea*.8);
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 17 — DAGELIJKSE ROUTINE (255–275s)
+// ════════════════════════════════════════════════════
+function s17(ctx, p) {
+  gradBG(ctx);
+  sceneTitle(ctx,'Jouw Dagelijkse Trading Routine','Volg deze stappen elke sessie', p);
+
+  const stappen = [
+    { n:'1', title:'Check de Bias',         desc:'Open KENTO SUITE v1 → bovenste regel → BULLISH of BEARISH?' },
+    { n:'2', title:'Fibonacci plaatsen',    desc:'Gebruik FIB SUITE v1 → wacht tot prijs in buy of sell zone komt' },
+    { n:'3', title:'Bevestig OB of IDM',    desc:'Is er een Order Block of Inducement sweep in de zone?' },
+    { n:'4', title:'Check Orderflow',       desc:'Cum Delta richting klopt? HVN geeft support/resistance?' },
+    { n:'5', title:'Voer de trade uit',     desc:'Entry met SL/TP klaar → size calculeer op 1-2% risico per trade' },
+    { n:'6', title:'Trade management',      desc:'TP1 bereikt → SL naar break-even → laat TP2/3 lopen' },
+  ];
+
+  stappen.forEach((s,i)=>{
+    const delay=.08+i*.14;
+    const a=easeO(seg(p,delay,delay+.15));
+    const y=130+i*60, left=W/2-360;
+    ctx.save(); ctx.globalAlpha=a;
+    // Number badge
+    rr(ctx,left,y-16,36,36,18,C.accent+'33',C.accent+'66',1);
+    txt(ctx,s.n,left+18,y+7,14,C.accent,'center','800');
+    // Title + desc
+    txt(ctx,s.title, left+50, y, 14, C.white,'left','700');
+    txt(ctx,s.desc,  left+50, y+17, 11, C.gray,'left','400');
+    ctx.restore();
+  });
+}
+
+// ════════════════════════════════════════════════════
+// SCENE 18 — OUTRO (275–300s)
+// ════════════════════════════════════════════════════
+function s18(ctx, p) {
+  gradBG(ctx); gridBG(ctx,.025);
+
+  // Glow
+  ctx.save();
+  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,300);
+  g.addColorStop(0,`rgba(33,150,243,${.1*easeO(p)})`);
+  g.addColorStop(1,'rgba(33,150,243,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H); ctx.restore();
+
+  const a1=easeO(seg(p,0,.25));
+  rr(ctx,W/2-32,H/2-100,64,64,16,'rgba(33,150,243,0.15)',C.accent,1.5);
+  txt(ctx,'K',W/2,H/2-50,32,C.accent);
+
+  atxt(ctx,'KENTO TRADING SUITE',W/2,H/2-2,34,C.white,easeO(seg(p,.1,.4)),'center','800');
+  atxt(ctx,'Je bent er klaar voor.',W/2,H/2+34,18,C.gray,easeO(seg(p,.25,.55)));
+
+  // Summary badges
+  const ba=easeO(seg(p,.42,.7));
+  const sum=['✓ Markt Structuur','✓ Fibonacci Zones','✓ Order Blocks','✓ Inducement','✓ Orderflow','✓ SL / TP Setup'];
+  sum.forEach((s,i)=>{
+    const bx=W/2+(i-2.5)*148, by=H/2+90;
+    ctx.save(); ctx.globalAlpha=ba*easeO(seg(p,.42+i*.04,.54+i*.04));
+    rr(ctx,bx-62,by-16,124,30,15,'rgba(33,150,243,.08)','rgba(33,150,243,.2)',1);
+    txt(ctx,s,bx,by+3,11,C.accent);
+    ctx.restore();
+  });
+
+  atxt(ctx,'Veel succes! 🚀',W/2,H-60,16,C.white,easeO(seg(p,.7,1)),'center','700');
+
+  // Replay hint
+  const rh=easeO(seg(p,.8,1))*(.5+.5*Math.sin(Date.now()*.003));
+  atxt(ctx,'↩  Klik op een hoofdstuk hieronder om opnieuw te bekijken',W/2,H-34,12,C.gray,rh);
+}
+
+// ── Scene registry ────────────────────────────────
+const SCENES = [
+  { id:'intro',     start:0,   end:4,   label:'Intro',               fn:s01 },
+  { id:'candles',   start:4,   end:15,  label:'Candlesticks',        fn:s02 },
+  { id:'struct',    start:15,  end:28,  label:'Markt Structuur',     fn:s03 },
+  { id:'bos',       start:28,  end:44,  label:'Break of Structure',  fn:s04 },
+  { id:'choch',     start:44,  end:58,  label:'CHoCH',               fn:s05 },
+  { id:'bias',      start:58,  end:72,  label:'Bias Systeem',        fn:s06 },
+  { id:'premium',   start:72,  end:88,  label:'Premium/Discount',    fn:s07 },
+  { id:'fibzones',  start:88,  end:105, label:'Fibonacci Zones',     fn:s08 },
+  { id:'ob',        start:105, end:120, label:'Order Blocks',        fn:s09 },
+  { id:'fvg',       start:120, end:135, label:'Fair Value Gaps',     fn:s10 },
+  { id:'idm',       start:135, end:150, label:'Inducement (IDM)',    fn:s11 },
+  { id:'flow',      start:150, end:165, label:'Orderflow & HVN',     fn:s12 },
+  { id:'buyersltp', start:165, end:185, label:'Buyer SL/TP',         fn:s13 },
+  { id:'sellersltp',start:185, end:205, label:'Seller SL/TP',        fn:s14 },
+  { id:'combined',  start:205, end:235, label:'Complete Setup',      fn:s15 },
+  { id:'scalper',   start:235, end:255, label:'Scalper Signalen',    fn:s16 },
+  { id:'routine',   start:255, end:275, label:'Dagelijkse Routine',  fn:s17 },
+  { id:'outro',     start:275, end:300, label:'Afsluiting',          fn:s18 },
+];
+
+function fmtTime(s) {
+  const m=Math.floor(s/60), sec=Math.floor(s%60);
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// ── Player engine ─────────────────────────────────
+const canvas = document.getElementById('mainCanvas');
+const ctx    = canvas.getContext('2d');
+const playBtn    = document.getElementById('playBtn');
+const slider     = document.getElementById('timeSlider');
+const timeDsp    = document.getElementById('timeDisplay');
+const chapterLbl = document.getElementById('chapterLabel');
+const chapGrid   = document.getElementById('chaptersGrid');
+
+let curTime  = 0;
+let playing  = false;
+let lastRAF  = null;
+let lastStamp= null;
+
+function getScene(t) {
+  return SCENES.find(s => t >= s.start && t < s.end) || SCENES[SCENES.length-1];
+}
+
+function renderFrame() {
+  const sc = getScene(curTime);
+  const sp = clamp((curTime - sc.start) / (sc.end - sc.start), 0, 1);
+
+  // Cross-fade transition: fade in first 0.3s, fade out last 0.3s of scene
+  const fadeDur = 0.3;
+  let transA = 1;
+  const localT = curTime - sc.start;
+  const dur = sc.end - sc.start;
+  if(localT < fadeDur) transA = easeO(localT/fadeDur);
+  else if(localT > dur-fadeDur) transA = easeO((dur-localT)/fadeDur);
+
+  ctx.clearRect(0,0,W,H);
+  sc.fn(ctx, sp);
+
+  // Fade overlay
+  if(transA < 1) {
+    ctx.save();
+    ctx.globalAlpha = 1-transA;
+    ctx.fillStyle='#0d1117';
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+  }
+
+  // Update UI
+  slider.value = curTime;
+  timeDsp.textContent = `${fmtTime(curTime)} / ${fmtTime(TOTAL)}`;
+  chapterLbl.textContent = sc.label;
+
+  // Highlight active chapter
+  document.querySelectorAll('.chapter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.id === sc.id);
+  });
+
+  // Voice-over: trigger per scene
+  if (playing && typeof voiceEnabled !== 'undefined' && voiceEnabled) {
+    speak(sc.id);
+  }
+}
+
+function tick(stamp) {
+  if(!playing) return;
+  if(lastStamp) {
+    const dt = (stamp - lastStamp) / 1000;
+    curTime = Math.min(curTime + dt, TOTAL);
+  }
+  lastStamp = stamp;
+  renderFrame();
+  if(curTime >= TOTAL) {
+    playing = false;
+    playBtn.textContent = '↩';
+    lastStamp = null;
+    return;
+  }
+  lastRAF = requestAnimationFrame(tick);
+}
+
+function togglePlay() {
+  if(curTime >= TOTAL) { curTime=0; }
+  playing = !playing;
+  if(playing) {
+    playBtn.textContent = '⏸';
+    lastStamp = null;
+    lastRAF = requestAnimationFrame(tick);
+  } else {
+    playBtn.textContent = '▶';
+    lastStamp = null;
+    cancelAnimationFrame(lastRAF);
+  }
+}
+
+playBtn.addEventListener('click', togglePlay);
+canvas.addEventListener('click', togglePlay);
+
+slider.addEventListener('input', () => {
+  curTime = parseFloat(slider.value);
+  if(!playing) renderFrame();
+});
+
+// Build chapter buttons
+SCENES.forEach((sc,i) => {
+  const btn = document.createElement('button');
+  btn.className = 'chapter-btn';
+  btn.dataset.id = sc.id;
+  btn.innerHTML = `<div class="ch-num">H${String(i+1).padStart(2,'0')}</div>
+    <div class="ch-title">${sc.label}</div>
+    <div class="ch-time">${fmtTime(sc.start)} – ${fmtTime(sc.end)}</div>`;
+  btn.addEventListener('click', () => {
+    curTime = sc.start;
+    if(!playing) renderFrame();
+  });
+  chapGrid.appendChild(btn);
+});
+
+// Initial render
+renderFrame();
+
+// ══════════════════════════════════════════════════════
+//  VOICE-OVER ENGINE (Web Speech API — Dutch)
+// ══════════════════════════════════════════════════════
+const VOICEOVER = {
+  intro:     'Welkom bij de KENTO Trading Suite video gids. In de volgende vijf minuten leer je alles van candlesticks tot complete trade setups.',
+  candles:   'Een candlestick toont de prijs van één tijdsperiode. De body toont open en sluitkoers. De wick toont het hoogste en laagste punt. Groen betekent de prijs steeg, rood betekent de prijs daalde.',
+  struct:    'De markt beweegt in structuur. Bij een uptrend zie je hogere highs en hogere lows. Bij een downtrend lagere highs en lagere lows. Dit is de absolute basis van technische analyse.',
+  bos:       'Break of Structure betekent dat de prijs een vorig swing punt doorbreekt. Een bullish break of structure bevestigt de opwaartse trend en geeft groen licht voor long trades.',
+  choch:     'Change of Character is de eerste waarschuwing van een trendomkering. Prijs breekt het laatste Higher Low. Dit is nog geen bevestiging, maar een belangrijk vroeg signaal.',
+  bias:      'De bias bepaalt jouw handelsrichting voor de hele sessie. Bij bullish bias zoek je alleen long setups. Bij bearish bias alleen short. Handel nooit tegen de bias in.',
+  premium:   'Alles boven de vijftig procent lijn is Premium, oftewel duur. Alles eronder is Discount, goedkoop. De regel is simpel: koop in discount, verkoop of short in premium.',
+  fibzones:  'De Fibonacci retracement toont exacte koop- en verkoopzones. De Buy Zone ligt tussen nul punt zes één acht en nul punt zeven acht zes. De Sell Zone tussen nul punt twee drie zes en nul punt drie acht twee.',
+  ob:        'Een Order Block is de laatste bearish candle voor een bullish break of structure. Dit is waar grote spelers hun koop orders hebben geplaatst. Prijs keert hier later vaak terug voor een bounce.',
+  fvg:       'Een Fair Value Gap ontstaat wanneer candle één en candle drie niet overlappen. Prijs laat een gat achter in de markt. Dit niveau wordt later bijna altijd teruggekeerd en werkt als sterke magneet.',
+  idm:       'Inducement is een valse break van een swing punt. De wick gaat er net onderdoor maar de candle sluit terug boven. Dit betekent dat stop losses zijn opgepakt, en de echte move staat nu klaar.',
+  flow:      'Delta toont het verschil tussen koop en verkoopvolume per candle. Cumulatieve delta toont de trend over meerdere candles. High Volume Nodes zijn niveaus waar de meeste volume heeft plaatsgevonden. Dit zijn je sterkste support en resistance zones.',
+  buyersltp: 'De buyer setup is als volgt. Entry in de buy zone tussen nul punt zes en nul punt zeven acht zes. Stop loss onder de swing low min een halve ATR. Take profit één op nul punt vijf, take profit twee op nul punt drie acht twee, take profit drie op het swing high.',
+  sellersltp:'De seller setup is het spiegelbeeld. Entry in de sell zone. Stop loss boven het swing high plus een halve ATR. Take profits gaan omlaag naar nul punt vijf, nul punt zes, en uiteindelijk het swing low.',
+  combined:  'De complete setup checklist. Eerste, is de bias bullish? Tweede, is de prijs in de buy zone? Derde, is er een order block aanwezig? Vierde, is er een inducement sweep geweest? Vijfde, is de cumulatieve delta positief? Als alles aangevinkt is, voer je de entry uit.',
+  scalper:   'Scalper signalen verschijnen als groene cirkels voor long en rode cirkels voor short. Ze zijn reactief en verschijnen na een break of structure in de juiste bias richting. Combineer altijd met de fibonacci zone en order block bevestiging.',
+  routine:   'Jouw dagelijkse routine. Stap één: check de bias. Stap twee: wacht op de fibonacci zone. Stap drie: bevestig een order block of inducement. Stap vier: controleer de orderflow. Stap vijf: entry uitvoeren met stop loss en take profits klaar. Stap zes: verplaats de stop loss naar break-even na take profit één.',
+  outro:     'Je hebt nu alle onderdelen van de KENTO Trading Suite gezien. Van candlesticks en marktstructuur, tot fibonacci zones, order blocks, inducement en complete long en short setups. Je bent er klaar voor. Veel succes met traden.',
+};
+
+let voiceEnabled  = false;
+let lastSpokenId  = null;
+let dutchVoice    = null;
+const voiceBtn    = document.getElementById('voiceBtn');
+const subtitleEl  = document.getElementById('subtitleText');
+
+// Robuste voice loader — Chrome laadt stemmen asynchroon
+function findDutchVoice() {
+  const all = speechSynthesis.getVoices();
+  // Zoek exacte nl-NL stem, dan elke nl stem
+  return all.find(v => v.lang === 'nl-NL')
+      || all.find(v => v.lang === 'nl-BE')
+      || all.find(v => v.lang.startsWith('nl'))
+      || null;
+}
+
+// Probeer direct + via event (Chrome heeft de voices pas na het event)
+dutchVoice = findDutchVoice();
+speechSynthesis.addEventListener('voiceschanged', () => {
+  dutchVoice = findDutchVoice();
+});
+
+function speak(sceneId) {
+  if (!voiceEnabled) return;
+  if (lastSpokenId === sceneId) return;
+  lastSpokenId = sceneId;
+
+  const text = VOICEOVER[sceneId];
+  if (!text) return;
+
+  // Herlaad stem als die nog niet gevonden was
+  if (!dutchVoice) dutchVoice = findDutchVoice();
+
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+
+  // Altijd nl-NL forceren — ook zonder stem object spreekt de browser Dutch
+  utt.lang   = 'nl-NL';
+  if (dutchVoice) utt.voice = dutchVoice;
+  utt.rate   = 0.90;
+  utt.pitch  = 1.0;
+  utt.volume = 1.0;
+
+  subtitleEl.textContent = text;
+  utt.onend = () => { if (voiceEnabled) subtitleEl.textContent = ''; };
+  utt.onerror = (e) => { if (e.error !== 'interrupted' && e.error !== 'canceled') console.warn('Speech error:', e.error); };
+  speechSynthesis.speak(utt);
+}
+
+function stopVoice() {
+  speechSynthesis.cancel();
+  lastSpokenId = null;
+  subtitleEl.textContent = '';
+}
+
+// Voice button toggle
+voiceBtn.addEventListener('click', () => {
+  voiceEnabled = !voiceEnabled;
+  if (voiceEnabled) {
+    voiceBtn.textContent = '🔊 Voice-over';
+    voiceBtn.classList.add('active');
+    lastSpokenId = null; // force re-speak current scene
+    if (playing) speak(getScene(curTime).id);
+    else subtitleEl.textContent = 'Voice-over ingeschakeld — druk ▶ om te beginnen';
+  } else {
+    voiceBtn.textContent = '🔇 Voice-over';
+    voiceBtn.classList.remove('active');
+    stopVoice();
+    subtitleEl.textContent = 'Voice-over uitgeschakeld';
+  }
+});
+
+// Stop voice when pausing or scrubbing
+playBtn.addEventListener('click', () => {
+  if (playing) stopVoice(); // was playing, now pausing
+});
+slider.addEventListener('mousedown', () => { stopVoice(); lastSpokenId = null; });
+slider.addEventListener('touchstart', () => { stopVoice(); lastSpokenId = null; });
+
+// Chapter jump also resets voice
+document.querySelectorAll('.chapter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    stopVoice();
+    lastSpokenId = null;
+    if (playing && voiceEnabled) {
+      setTimeout(() => speak(getScene(curTime).id), 300);
+    }
+  });
+});
+</script>
+</body>
+</html>
