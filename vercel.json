@@ -6,6 +6,10 @@
       "maxDuration": 10
     }
   },
+  "rewrites": [
+    { "source": "/",      "destination": "/KENTO_SUITE_App.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
