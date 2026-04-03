@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#000"/>
+  <!-- Outer ring -->
+  <circle cx="62" cy="50" r="32" fill="none" stroke="white" stroke-width="9"/>
+  <!-- Inner dot -->
+  <circle cx="62" cy="50" r="10" fill="white"/>
+  <!-- Double arrow -->
+  <polyline points="10,34 32,50 10,66" fill="none" stroke="white" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="26,34 48,50 26,66" fill="none" stroke="white" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ST-Trading-EDU v1 — App</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 :root {
   --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --bg4: #30363d;
@@ -76,11 +77,73 @@ body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', syst
 .sidebar {
   position: fixed; top: 52px; left: 0; bottom: 0; width: var(--sidebar-w);
   background: var(--bg2); border-right: 1px solid var(--bg3);
-  overflow-y: auto; z-index: 200; transition: transform .3s;
+  overflow-y: auto; z-index: 200; transition: transform .3s, width .25s ease;
   scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
+  display: flex; flex-direction: column;
 }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+
+/* ── SIDEBAR COLLAPSED (mini) ── */
+.sidebar.mini { width: 58px; overflow-x: hidden; }
+.sidebar.mini .sidebar-section { padding: 14px 0; justify-content: center; }
+.sidebar.mini .sidebar-section span:not(.s-arrow) { display: none; }
+.sidebar.mini .sidebar-section .s-arrow { display: none; }
+.sidebar.mini .nav-group { max-height: 9999px !important; opacity: 1 !important; pointer-events: auto !important; }
+.sidebar.mini .nav-item { padding: 10px 0; justify-content: center; border-left: none; border-radius: 0; }
+.sidebar.mini .nav-item span:not(.nav-icon) { display: none; }
+.sidebar.mini .nav-sub { display: none !important; }
+.sidebar.mini .nav-item.active { background: var(--bg3); border-left: 2px solid var(--accent); }
+.sidebar.mini .sb-collapse-btn { justify-content: center; }
+.sidebar.mini .sb-nav-scroll { overflow-y: auto; }
+
+/* ── SIDEBAR INNER SCROLL AREA ── */
+.sb-nav-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+
+/* ── SIDEBAR HEADER (brand + collapse btn) ── */
+.sb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 10px 16px; border-bottom: 1px solid var(--bg3);
+  min-height: 44px; flex-shrink: 0;
+}
+.sb-brand { display: flex; align-items: center; gap: 9px; overflow: hidden; }
+.sb-brand-icon { width: 26px; height: 26px; background: linear-gradient(135deg,var(--accent),var(--teal)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: white; flex-shrink: 0; }
+.sb-brand-name { font-size: 12px; font-weight: 800; color: var(--white); white-space: nowrap; overflow: hidden; }
+.sidebar.mini .sb-brand-name { display: none; }
+.sb-collapse-btn { background: none; border: none; color: var(--gray); cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 16px; transition: all .15s; flex-shrink: 0; }
+.sb-collapse-btn:hover { color: var(--white); background: var(--bg3); }
+.sidebar.mini .sb-collapse-btn { width: 100%; display: flex; justify-content: center; }
+
+/* ── SIDEBAR FOOTER (user + logout) ── */
+.sb-footer {
+  flex-shrink: 0; border-top: 1px solid var(--bg3);
+  padding: 10px 12px; background: var(--bg2);
+}
+.sb-user-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 4px;
+  border-radius: 10px; cursor: default;
+}
+.sb-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg,var(--accent),var(--teal));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: white;
+}
+.sb-user-info { flex: 1; overflow: hidden; min-width: 0; }
+.sb-user-name { font-size: 12px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-user-pkg { font-size: 10px; color: var(--gray); margin-top: 1px; }
+.sb-logout-btn {
+  width: 100%; margin-top: 6px; padding: 7px 12px;
+  background: transparent; border: 1px solid var(--bg4); border-radius: 8px;
+  color: var(--gray); font-size: 12px; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 8px; transition: all .15s;
+}
+.sb-logout-btn:hover { border-color: var(--red); color: var(--red); background: #F2364511; }
+.sidebar.mini .sb-user-info { display: none; }
+.sidebar.mini .sb-footer { padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sidebar.mini .sb-user-row { padding: 4px 0; justify-content: center; }
+.sidebar.mini .sb-logout-btn { width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: 50%; margin-top: 0; }
+.sidebar.mini .sb-logout-btn span:not(.sb-logout-icon) { display: none; }
 .sidebar-section {
   padding: 18px 16px 6px; font-size: 11px; font-weight: 700; color: var(--gray);
   letter-spacing: 1px; text-transform: uppercase;
@@ -109,7 +172,7 @@ body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', syst
 .nav-sub.active { color: var(--accent); }
 
 /* ── MAIN ── */
-.main { margin-left: var(--sidebar-w); margin-top: 52px; flex: 1; }
+.main { margin-left: var(--sidebar-w); margin-top: 52px; flex: 1; transition: margin-left .25s ease; }
 .page { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
 .page-en { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
 .page.active { display: block; }
@@ -438,7 +501,9 @@ body { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
 <!-- ══ LOGIN / LOCK OVERLAY ══ -->
 <div id="kento-lock-overlay">
   <div class="kl-card" id="kl-login-card">
-    <div class="kl-logo">K</div>
+    <div class="kl-logo" style="background:none;padding:0;width:auto;height:auto">
+      <img src="favicon.svg" alt="logo" style="width:52px;height:52px;border-radius:14px;display:block">
+    </div>
     <div class="kl-title">ST-Trading-EDU</div>
     <div class="kl-sub" id="kl-sub-text">Log in om toegang te krijgen</div>
     <div class="kl-lock-icon" id="kl-icon">🔐</div>
@@ -461,10 +526,9 @@ body { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
 <!-- TOP BAR -->
 <header class="topbar">
   <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-  <a class="topbar-logo" onclick="showPage('home')">
-    <div class="icon">K</div>
-    <span class="name">ST-Trading-EDU</span>
-    <span class="ver">v1</span>
+  <a class="topbar-logo" onclick="showPage('home')" style="gap:0">
+    <img src="logo.svg" alt="SURITARGETS" style="height:30px;width:auto;display:block">
+    <span class="ver" style="margin-left:10px">v1</span>
   </a>
   <div class="topbar-spacer"></div>
   <div class="lang-toggle">
@@ -489,6 +553,17 @@ body { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
 
+  <!-- Brand header + collapse toggle -->
+  <div class="sb-header">
+    <div class="sb-brand">
+      <img src="favicon.svg" class="sb-brand-icon" style="border-radius:7px;width:26px;height:26px">
+      <span class="sb-brand-name">SURITARGETS</span>
+    </div>
+    <button class="sb-collapse-btn" onclick="toggleSidebarMini()" id="sb-collapse-btn" title="Inklappen">◀</button>
+  </div>
+
+  <!-- Scrollable nav area -->
+  <div class="sb-nav-scroll">
   <div class="sidebar-section" onclick="toggleGroup('g-nav')"><span data-i18n="s.nav">Navigatie</span><span class="s-arrow">▾</span></div>
   <div class="nav-group" id="g-nav">
     <a class="nav-item active" id="nav-home" onclick="showPage('home')"><span class="nav-icon">🏠</span><span data-i18n="n.home">Home</span></a>
@@ -626,6 +701,22 @@ body { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
     <a class="nav-item" id="nav-alerts" onclick="showPage('alerts')"><span class="nav-icon">🔔</span><span data-i18n="n.alerts">Alerts (21)</span></a>
     <a class="nav-item" id="nav-setup" onclick="showPage('setup')"><span class="nav-icon">🚀</span><span data-i18n="n.setup">Setup Guide</span></a>
     <a class="nav-item" id="nav-glossary" onclick="showPage('glossary')"><span class="nav-icon">📖</span><span data-i18n="n.glossary">Glossary</span></a>
+  </div>
+  </div><!-- /sb-nav-scroll -->
+
+  <!-- Footer: user info + logout -->
+  <div class="sb-footer" id="sb-footer">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="sb-avatar">?</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name" id="sb-user-name">Niet ingelogd</div>
+        <div class="sb-user-pkg" id="sb-user-pkg">—</div>
+      </div>
+    </div>
+    <button class="sb-logout-btn" onclick="kAuth.lock()">
+      <span class="sb-logout-icon">🔒</span>
+      <span>Uitloggen</span>
+    </button>
   </div>
 
 </nav>
@@ -8388,6 +8479,50 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); }
+
+function toggleSidebarMini() {
+  var sb  = document.getElementById('sidebar');
+  var btn = document.getElementById('sb-collapse-btn');
+  var main = document.getElementById('main');
+  var isMini = sb.classList.toggle('mini');
+  btn.textContent = isMini ? '▶' : '◀';
+  if (main) main.style.marginLeft = isMini ? '58px' : '';
+  try { localStorage.setItem('kento_sidebar_mini', isMini ? '1' : '0'); } catch(e) {}
+}
+
+function sbUpdateUser() {
+  var s = kAuth.getCurrentUser ? kAuth.getCurrentUser() : null;
+  if (!s) s = JSON.parse(localStorage.getItem('kento_session_v2') || 'null');
+  var nameEl = document.getElementById('sb-user-name');
+  var pkgEl  = document.getElementById('sb-user-pkg');
+  var avatEl = document.getElementById('sb-avatar');
+  if (!nameEl) return;
+  if (s && s.userName) {
+    var initials = s.userName.replace('ST-Trading-EDU','ST').trim().split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+    nameEl.textContent = s.userName;
+    pkgEl.textContent  = s.package || '—';
+    avatEl.textContent = initials || '?';
+  } else {
+    nameEl.textContent = 'Niet ingelogd';
+    pkgEl.textContent  = '—';
+    avatEl.textContent = '?';
+  }
+}
+
+// Restore mini state on load
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    if (localStorage.getItem('kento_sidebar_mini') === '1') {
+      var sb = document.getElementById('sidebar');
+      var btn = document.getElementById('sb-collapse-btn');
+      var main = document.getElementById('main');
+      if (sb) sb.classList.add('mini');
+      if (btn) btn.textContent = '▶';
+      if (main) main.style.marginLeft = '58px';
+    }
+  } catch(e) {}
+  sbUpdateUser();
+});
 document.addEventListener('click', (e) => {
   const sb = document.getElementById('sidebar');
   if (window.innerWidth <= 768 && !sb.contains(e.target) && e.target.className !== 'sidebar-toggle') closeSidebar();
@@ -9480,6 +9615,7 @@ var kAuth = {
     this._startLockTimer();
     this._updateTimerDisplay();
     applyModuleVisibility();
+    if (typeof sbUpdateUser === 'function') sbUpdateUser();
   },
 
   lock: function() {
