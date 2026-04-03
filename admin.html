@@ -275,6 +275,44 @@ a{color:inherit;text-decoration:none}
           <button class="btn primary full" onclick="admChangePw()">💾 Wachtwoord opslaan</button>
         </div>
 
+        <!-- Beveiliging toggles -->
+        <div class="adm-card">
+          <div class="adm-section-title">🛡️ App Beveiliging</div>
+          <p style="font-size:12px;color:#8b949e;margin:0 0 16px">Schakel beveiligingsopties in of uit voor alle gebruikers van de app.</p>
+
+          <!-- F12 / DevTools toggle -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #30363d;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#e6edf3">🔒 F12 / DevTools Blokkering</div>
+              <div style="font-size:12px;color:#8b949e;margin-top:3px">Blokkeert F12, Ctrl+Shift+I/J/C en rechtermuisknop in de app</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;margin-left:16px">
+              <input type="checkbox" id="toggle-dt-protection" onchange="admToggleDtProtection(this.checked)"
+                style="opacity:0;width:0;height:0;position:absolute">
+              <span id="toggle-dt-track" style="position:absolute;cursor:pointer;inset:0;background:#30363d;border-radius:26px;transition:.25s">
+                <span id="toggle-dt-thumb" style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#8b949e;border-radius:50%;transition:.25s"></span>
+              </span>
+            </label>
+          </div>
+
+          <!-- Rechtermuisknop toggle -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#e6edf3">🖱️ Rechtermuisknop Blokkering</div>
+              <div style="font-size:12px;color:#8b949e;margin-top:3px">Blokkeert het context menu in de app (onderdeel van F12 bescherming)</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;margin-left:16px">
+              <input type="checkbox" id="toggle-ctx-protection" onchange="admToggleCtxProtection(this.checked)"
+                style="opacity:0;width:0;height:0;position:absolute">
+              <span id="toggle-ctx-track" style="position:absolute;cursor:pointer;inset:0;background:#30363d;border-radius:26px;transition:.25s">
+                <span id="toggle-ctx-thumb" style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#8b949e;border-radius:50%;transition:.25s"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="msg-ok" id="sec-toggle-ok" style="margin-top:8px"></div>
+        </div>
+
         <!-- Pakket info -->
         <div class="adm-card adm-grid2" style="grid-column:1/-1;display:block">
           <div class="adm-section-title">📦 Pakket Overzicht</div>
@@ -863,7 +901,40 @@ async function admDoImport() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Settings section
 // ─────────────────────────────────────────────────────────────────────────────
+// ── Beveiliging Toggles ───────────────────────────────────────────────────────
+function _admSetToggleUI(id, trackId, thumbId, on) {
+  var chk = document.getElementById(id);
+  var track = document.getElementById(trackId);
+  var thumb = document.getElementById(thumbId);
+  if (!chk || !track || !thumb) return;
+  chk.checked = on;
+  track.style.background = on ? '#2196F3' : '#30363d';
+  thumb.style.background  = on ? '#fff'    : '#8b949e';
+  thumb.style.transform   = on ? 'translateX(20px)' : 'translateX(0)';
+}
+
+function admToggleDtProtection(on) {
+  localStorage.setItem('dt_protection', on ? '1' : '0');
+  _admSetToggleUI('toggle-dt-protection','toggle-dt-track','toggle-dt-thumb', on);
+  var ok = document.getElementById('sec-toggle-ok');
+  if (ok) { ok.textContent = on ? '✅ F12 bescherming ingeschakeld' : '⚠️ F12 bescherming uitgeschakeld'; setTimeout(function(){ ok.textContent=''; }, 2500); }
+}
+
+function admToggleCtxProtection(on) {
+  localStorage.setItem('ctx_protection', on ? '1' : '0');
+  _admSetToggleUI('toggle-ctx-protection','toggle-ctx-track','toggle-ctx-thumb', on);
+  var ok = document.getElementById('sec-toggle-ok');
+  if (ok) { ok.textContent = on ? '✅ Rechtermuisknop blokkering ingeschakeld' : '⚠️ Rechtermuisknop blokkering uitgeschakeld'; setTimeout(function(){ ok.textContent=''; }, 2500); }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function admRefreshSettings() {
+  // Security toggles state
+  var dtOn  = localStorage.getItem('dt_protection')  !== '0';
+  var ctxOn = localStorage.getItem('ctx_protection') !== '0';
+  _admSetToggleUI('toggle-dt-protection',  'toggle-dt-track',  'toggle-dt-thumb',  dtOn);
+  _admSetToggleUI('toggle-ctx-protection', 'toggle-ctx-track', 'toggle-ctx-thumb', ctxOn);
+
   // Session status
   try {
     var hours_map = {admin:24,full:24,maand1:2,maand2:2,maand3:2};

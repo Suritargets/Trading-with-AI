@@ -13,9 +13,13 @@
   var _dtUnlocked = false;
   var _dtModal    = null;
 
+  // Check if protection is enabled (default: ON, admin can toggle via localStorage)
+  function _dtEnabled()  { return localStorage.getItem('dt_protection')  !== '0'; }
+  function _ctxEnabled() { return localStorage.getItem('ctx_protection') !== '0'; }
+
   // Block F12, Ctrl+Shift+I/J/C, Ctrl+U
   document.addEventListener('keydown', function(e) {
-    if (_dtUnlocked) return;
+    if (_dtUnlocked || !_dtEnabled()) return;
     var blocked =
       e.key === 'F12' ||
       (e.ctrlKey && e.shiftKey && /^[IJCijc]$/.test(e.key)) ||
@@ -29,7 +33,7 @@
 
   // Disable right-click context menu
   document.addEventListener('contextmenu', function(e) {
-    if (!_dtUnlocked) e.preventDefault();
+    if (!_dtUnlocked && _ctxEnabled()) e.preventDefault();
   });
 
   function _dtShowModal() {
@@ -253,9 +257,12 @@ body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', syst
 
 /* ── MAIN ── */
 .main { margin-left: var(--sidebar-w); margin-top: 52px; flex: 1; transition: margin-left .25s ease; }
-.page { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
-.page-en { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
+.page { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; transition: max-width .25s ease, padding .25s ease; }
+.page-en { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; transition: max-width .25s ease, padding .25s ease; }
 .page.active { display: block; }
+/* Sidebar mini → content expands full width */
+.main.sb-mini .page,
+.main.sb-mini .page-en { max-width: 100%; padding-left: 40px; padding-right: 40px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ── TYPOGRAPHY ── */
@@ -8639,12 +8646,18 @@ function toggleSidebar() { document.getElementById('sidebar').classList.toggle('
 function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); }
 
 function toggleSidebarMini() {
-  var sb  = document.getElementById('sidebar');
-  var btn = document.getElementById('sb-collapse-btn');
+  var sb   = document.getElementById('sidebar');
+  var btn  = document.getElementById('sb-collapse-btn');
   var main = document.getElementById('main');
+  var prog = document.getElementById('progress');
   var isMini = sb.classList.toggle('mini');
   btn.textContent = isMini ? '▶' : '◀';
-  if (main) main.style.marginLeft = isMini ? '58px' : '';
+  if (main) {
+    main.style.marginLeft = isMini ? '58px' : '';
+    if (isMini) main.classList.add('sb-mini');
+    else        main.classList.remove('sb-mini');
+  }
+  if (prog) prog.style.left = isMini ? '58px' : '';
   try { localStorage.setItem('kento_sidebar_mini', isMini ? '1' : '0'); } catch(e) {}
 }
 
@@ -8671,12 +8684,14 @@ function sbUpdateUser() {
 document.addEventListener('DOMContentLoaded', function() {
   try {
     if (localStorage.getItem('kento_sidebar_mini') === '1') {
-      var sb = document.getElementById('sidebar');
-      var btn = document.getElementById('sb-collapse-btn');
+      var sb   = document.getElementById('sidebar');
+      var btn  = document.getElementById('sb-collapse-btn');
       var main = document.getElementById('main');
-      if (sb) sb.classList.add('mini');
-      if (btn) btn.textContent = '▶';
-      if (main) main.style.marginLeft = '58px';
+      var prog = document.getElementById('progress');
+      if (sb)   sb.classList.add('mini');
+      if (btn)  btn.textContent = '▶';
+      if (main) { main.style.marginLeft = '58px'; main.classList.add('sb-mini'); }
+      if (prog) prog.style.left = '58px';
     }
   } catch(e) {}
   sbUpdateUser();
