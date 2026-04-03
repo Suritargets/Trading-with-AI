@@ -5,6 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ST-Trading-EDU v1 — App</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<!-- ── DevTools / F12 Bescherming ────────────────────────────────────────── -->
+<script>
+(function() {
+  'use strict';
+  var _dtUnlocked = false;
+  var _dtModal    = null;
+
+  // Block F12, Ctrl+Shift+I/J/C, Ctrl+U
+  document.addEventListener('keydown', function(e) {
+    if (_dtUnlocked) return;
+    var blocked =
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && /^[IJCijc]$/.test(e.key)) ||
+      (e.ctrlKey && /^[Uu]$/.test(e.key));
+    if (blocked) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      _dtShowModal();
+    }
+  }, true);
+
+  // Disable right-click context menu
+  document.addEventListener('contextmenu', function(e) {
+    if (!_dtUnlocked) e.preventDefault();
+  });
+
+  function _dtShowModal() {
+    if (_dtModal) { _dtModal.style.display = 'flex'; setTimeout(function(){ var i=document.getElementById('_dtInp'); if(i)i.focus(); },50); return; }
+    _dtModal = document.createElement('div');
+    _dtModal.id = '_dtOverlay';
+    _dtModal.style.cssText = 'position:fixed;inset:0;background:rgba(13,17,23,.96);z-index:2147483647;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;';
+    _dtModal.innerHTML =
+      '<div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:36px 32px;width:340px;text-align:center;box-shadow:0 24px 64px #000a;">' +
+        '<div style="font-size:44px;margin-bottom:14px;">🔒</div>' +
+        '<h3 style="color:#e6edf3;margin:0 0 8px;font-size:18px;font-weight:700;">Admin toegang vereist</h3>' +
+        '<p style="color:#8b949e;font-size:13px;margin:0 0 20px;line-height:1.5;">Developer tools zijn beveiligd.<br>Voer je admin wachtwoord in om door te gaan.</p>' +
+        '<input id="_dtInp" type="password" autocomplete="off" placeholder="Admin wachtwoord..." ' +
+          'style="width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:11px 14px;color:#e6edf3;font-size:14px;outline:none;margin-bottom:8px;" ' +
+          'onkeydown="if(event.key===\'Enter\')_dtVerify()">' +
+        '<div id="_dtErr" style="color:#F23645;font-size:12px;min-height:20px;margin-bottom:12px;"></div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button onclick="document.getElementById(\'_dtOverlay\').style.display=\'none\'" ' +
+            'style="flex:1;padding:10px;background:#21262d;border:1px solid #30363d;border-radius:8px;color:#8b949e;cursor:pointer;font-size:13px;">Annuleren</button>' +
+          '<button onclick="_dtVerify()" ' +
+            'style="flex:1;padding:10px;background:#2196F3;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:13px;font-weight:700;">Toegang</button>' +
+        '</div>' +
+      '</div>';
+    document.body ? document.body.appendChild(_dtModal) : document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(_dtModal); });
+    setTimeout(function(){ var i=document.getElementById('_dtInp'); if(i)i.focus(); }, 80);
+  }
+
+  window._dtVerify = async function() {
+    var inp = document.getElementById('_dtInp');
+    var err = document.getElementById('_dtErr');
+    if (!inp) return;
+    var val = inp.value.trim();
+    if (!val) { err.textContent = 'Voer een wachtwoord in.'; return; }
+    try {
+      var buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+      var hash = Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+      var adminHash = '5c4f8952d502e909cd4463284f07839adc1807204e09a37f70f5ce973e006356';
+      if (hash === adminHash) {
+        _dtUnlocked = true;
+        _dtModal.style.display = 'none';
+        err.textContent = '';
+        inp.value = '';
+      } else {
+        err.textContent = 'Onjuist wachtwoord. Probeer opnieuw.';
+        inp.value = '';
+        inp.focus();
+      }
+    } catch(e) {
+      err.textContent = 'Fout bij verificatie. Probeer opnieuw.';
+    }
+  };
+})();
+</script>
+<!-- ───────────────────────────────────────────────────────────────────────── -->
+
 <style>
 :root {
   --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --bg4: #30363d;

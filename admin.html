@@ -581,6 +581,15 @@ async function admRefresh() {
   admRenderUsers();
 }
 
+function fmtDate(d) {
+  if (!d) return '—';
+  try {
+    var dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('nl-NL', { day:'2-digit', month:'2-digit', year:'numeric' });
+  } catch(e) { return d; }
+}
+
 function admRenderStats() {
   var users = window.KENTO_USERS || [];
   var active = users.filter(function(u){ return u.status === 'active'; }).length;
@@ -624,8 +633,8 @@ function admRenderUsers() {
       + '<td><span class="pkg-badge" style="background:'+pkg.color+'22;color:'+pkg.color+'">'+pkg.label+'</span></td>'
       + '<td><span class="pkg-badge" style="background:'+rol.color+'22;color:'+rol.color+'">'+rol.label+'</span></td>'
       + '<td><span class="status-dot '+dotCls+'"></span>'+statusTxt+'</td>'
-      + '<td style="color:#8b949e">'+u.createdAt+'</td>'
-      + '<td style="color:#8b949e">'+(u.lastLogin||'—')+'</td>'
+      + '<td style="color:#8b949e">'+fmtDate(u.createdAt)+'</td>'
+      + '<td style="color:#8b949e">'+(u.lastLogin ? fmtDate(u.lastLogin) : '—')+'</td>'
       + '<td>'+actBtns+'</td>'
       + '</tr>';
   }).join('');

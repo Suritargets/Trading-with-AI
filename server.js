@@ -105,7 +105,7 @@ function routeApi(pathname, req, res) {
 // ── Static file server ────────────────────────────────────────────────────────
 function serveStatic(pathname, res) {
   // Default to main app
-  if (pathname === '/' || pathname === '') pathname = '/KENTO_SUITE_App.html';
+  if (pathname === '/' || pathname === '') pathname = '/index.html';
 
   const filePath = path.join(__dirname, pathname);
 
