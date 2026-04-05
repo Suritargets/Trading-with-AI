@@ -33,6 +33,14 @@ a{color:inherit;text-decoration:none}
 .tog-switch input:checked + .tog-slider{background:#2196F3}
 .tog-switch input:checked + .tog-slider:before{transform:translateX(16px);background:#fff}
 .tog-group-hd{font-size:11px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;margin-top:8px}
+.mod-role-tab{padding:6px 14px;background:#21262d;border:1px solid #30363d;border-radius:20px;color:#8b949e;cursor:pointer;font-size:12px;font-weight:700;transition:all .15s}
+.mod-role-tab:hover{border-color:#2196F3;color:#e6edf3}
+.mod-role-tab.active{background:#2196F322;border-color:#2196F3;color:#2196F3}
+.ins-bar-wrap{margin-bottom:10px}
+.ins-bar-label{display:flex;justify-content:space-between;font-size:12px;color:#e6edf3;margin-bottom:4px}
+.ins-bar-track{background:#21262d;border-radius:4px;height:8px;overflow:hidden}
+.ins-bar-fill{height:8px;border-radius:4px;background:#2196F3;transition:width .4s ease}
+.ins-section-hd{font-size:11px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px}
 .adm-nav-btn{background:transparent;border:1px solid transparent;border-radius:7px;padding:6px 14px;color:#8b949e;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
 .adm-nav-btn:hover{border-color:#30363d;color:#e6edf3}
 .adm-nav-btn.active{background:#21262d;border-color:#30363d;color:#e6edf3}
@@ -151,8 +159,9 @@ a{color:inherit;text-decoration:none}
     <div class="adm-nav">
       <button class="adm-nav-btn active" onclick="admShowSection('users')" id="nav-users">👥 Gebruikers</button>
       <button class="adm-nav-btn" onclick="admShowSection('modules')" id="nav-modules">🧩 Modules</button>
+      <button class="adm-nav-btn" onclick="admShowSection('insights')" id="nav-insights">📊 Inzichten</button>
       <button class="adm-nav-btn" onclick="admShowSection('settings')" id="nav-settings">⚙️ Instellingen</button>
-      <button class="adm-nav-btn" onclick="window.location.href='KENTO_SUITE_App.html'" style="background:#21262d;border-color:#30363d;color:#e6edf3">🏠 Naar App</button>
+      <button class="adm-nav-btn" onclick="window.location.href='index.html'" style="background:#21262d;border-color:#30363d;color:#e6edf3">🏠 Naar App</button>
       <button class="adm-nav-btn danger" onclick="admLogout()">Uitloggen</button>
     </div>
   </div>
@@ -202,9 +211,19 @@ a{color:inherit;text-decoration:none}
     <!-- ══ SETTINGS SECTION ═══════════════════════════════════════════════════ -->
     <!-- ══ MODULES SECTIE ══ -->
     <div class="adm-section" id="sec-modules">
-      <div class="adm-card" style="max-width:700px">
+      <div class="adm-card" style="max-width:780px">
         <div class="adm-section-title">🧩 Navigatie Modules</div>
-        <p style="font-size:12px;color:#8b949e;margin-bottom:16px">Zet modules uit om ze te verbergen voor alle gebruikers in de app. Instellingen worden direct opgeslagen.</p>
+
+        <!-- Role tabs -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="mod-role-tabs">
+          <button class="mod-role-tab active" data-role="global" onclick="admModSwitchRole('global')">🌐 Iedereen</button>
+          <button class="mod-role-tab" data-role="demo"   onclick="admModSwitchRole('demo')">🔍 Demo</button>
+          <button class="mod-role-tab" data-role="maand1" onclick="admModSwitchRole('maand1')">📗 Maand 1</button>
+          <button class="mod-role-tab" data-role="maand2" onclick="admModSwitchRole('maand2')">📙 Maand 2</button>
+          <button class="mod-role-tab" data-role="maand3" onclick="admModSwitchRole('maand3')">📘 Maand 3</button>
+          <button class="mod-role-tab" data-role="full"   onclick="admModSwitchRole('full')">⭐ Full</button>
+        </div>
+        <p id="mod-role-desc" style="font-size:12px;color:#8b949e;margin-bottom:16px">Verberg modules voor <strong>alle</strong> gebruikers. Rol-specifieke instellingen overschrijven dit per pakket.</p>
 
         <div class="tog-group-hd">📚 Leer Traden</div>
         <div class="tog-row"><span class="tog-label">🎓 Trading Guide</span><label class="tog-switch"><input type="checkbox" id="mod-guide" onchange="admToggleMod('guide',this.checked)"><span class="tog-slider"></span></label></div>
@@ -239,6 +258,20 @@ a{color:inherit;text-decoration:none}
           <button class="btn gray sm" onclick="admDisableAllMods()">🚫 Alles uit</button>
         </div>
         <div class="msg-ok" id="mod-msg" style="display:none">✓ Opgeslagen</div>
+      </div>
+    </div>
+
+    <!-- ══ INZICHTEN SECTIE ══ -->
+    <div class="adm-section" id="sec-insights" style="display:none">
+      <div class="adm-card" style="max-width:860px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="adm-section-title" style="margin:0">📊 Gebruikers Inzichten</div>
+          <button class="btn gray sm" onclick="admClearInsights()">🗑 Wis data</button>
+        </div>
+        <p style="font-size:12px;color:#8b949e;margin-bottom:20px">Anonieme data over welke pagina's worden bezocht, wat er wordt geklikt en hoe ver gebruikers scrollen. Data wordt lokaal opgeslagen per gebruiker.</p>
+        <div id="insights-body">
+          <div style="color:#8b949e;font-size:13px;text-align:center;padding:40px">Nog geen data beschikbaar. Navigeer in de app om data te verzamelen.</div>
+        </div>
       </div>
     </div>
 
@@ -526,34 +559,69 @@ function admShowSection(id) {
   var nb = document.getElementById('nav-' + id);
   if (nb) nb.classList.add('active');
   if (id === 'settings') admRefreshSettings();
-  if (id === 'modules')  admRenderModules();
+  if (id === 'modules')  { _curModRole = 'global'; admModSwitchRole('global'); admRenderModules(); }
+  if (id === 'insights') admRenderInsights();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Module Visibility
 // ─────────────────────────────────────────────────────────────────────────────
+// ── ROLE-BASED MODULES ────────────────────────────────────────────────────────
+var _curModRole = 'global'; // active tab
+var MOD_ROLE_DESCS = {
+  global:  'Verberg modules voor <strong>alle</strong> gebruikers. Rol-specifieke instellingen overschrijven dit per pakket.',
+  demo:    'Modules zichtbaar voor <strong>Demo</strong> gebruikers. Niet aangevinkt = verborgen voor demo pakket.',
+  maand1:  'Modules zichtbaar voor <strong>Maand 1</strong> pakket. Niet aangevinkt = verborgen.',
+  maand2:  'Modules zichtbaar voor <strong>Maand 2</strong> pakket. Niet aangevinkt = verborgen.',
+  maand3:  'Modules zichtbaar voor <strong>Maand 3</strong> pakket. Niet aangevinkt = verborgen.',
+  full:    'Modules zichtbaar voor <strong>Full</strong> pakket. Niet aangevinkt = verborgen.',
+};
+function _roleStorageKey(role) {
+  return role === 'global' ? 'kento_hidden_modules' : 'kento_role_mods_' + role;
+}
+function admModSwitchRole(role) {
+  _curModRole = role;
+  // Update tab styles
+  document.querySelectorAll('.mod-role-tab').forEach(function(b){
+    b.classList.toggle('active', b.dataset.role === role);
+  });
+  // Update description
+  var desc = document.getElementById('mod-role-desc');
+  if (desc) desc.innerHTML = MOD_ROLE_DESCS[role] || '';
+  // Load hidden list for this role
+  var hidden = [];
+  try { hidden = JSON.parse(localStorage.getItem(_roleStorageKey(role)) || '[]'); } catch(e) {}
+  admRenderModulesUI(hidden);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 var MOD_ALL = ['home','modes','guide','lesvideo','checklist','tradecl','patterns',
                'smc','scalper','combined','fib','trade','dashboard','alerts',
                'tips','glossary','setup','videogids'];
 var _hiddenMods = [];
 
-async function admGetHiddenMods() {
-  if (_admIsLocalMode()) {
-    try { _hiddenMods = JSON.parse(localStorage.getItem('kento_hidden_modules') || '[]'); } catch(e) { _hiddenMods = []; }
+async function admGetHiddenMods(role) {
+  role = role || _curModRole;
+  var key = _roleStorageKey(role);
+  if (_admIsLocalMode() || role !== 'global') {
+    try { _hiddenMods = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { _hiddenMods = []; }
     return _hiddenMods;
   }
   try {
     var res = await fetch('/api/modules');
     var data = await res.json();
     _hiddenMods = data.hiddenModules || [];
+    localStorage.setItem(key, JSON.stringify(_hiddenMods));
   } catch(e) { _hiddenMods = []; }
   return _hiddenMods;
 }
 
 async function admSaveHiddenMods(hidden) {
   _hiddenMods = hidden;
-  localStorage.setItem('kento_hidden_modules', JSON.stringify(hidden));
-  if (!_admIsLocalMode()) {
+  var key = _roleStorageKey(_curModRole);
+  localStorage.setItem(key, JSON.stringify(hidden));
+  // Only sync global list to API
+  if (_curModRole === 'global' && !_admIsLocalMode()) {
     try {
       await fetch('/api/modules', {
         method: 'POST',
@@ -925,6 +993,105 @@ function admToggleCtxProtection(on) {
   _admSetToggleUI('toggle-ctx-protection','toggle-ctx-track','toggle-ctx-thumb', on);
   var ok = document.getElementById('sec-toggle-ok');
   if (ok) { ok.textContent = on ? '✅ Rechtermuisknop blokkering ingeschakeld' : '⚠️ Rechtermuisknop blokkering uitgeschakeld'; setTimeout(function(){ ok.textContent=''; }, 2500); }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── INZICHTEN / ANALYTICS ────────────────────────────────────────────────────
+var MOD_LABELS = {
+  home:'🏠 Home', guide:'🎓 Trading Guide', lesvideo:'🎬 Les Video', checklist:'✅ Voortgang',
+  tradecl:'📋 Trading Checklist', patterns:'📊 Patterns', smc:'📊 SMC', scalper:'📈 Scalper',
+  combined:'⚡ Combined', fib:'📐 FIB Suite', trade:'💰 Trade Mgmt', dashboard:'🖥️ Dashboard',
+  alerts:'🔔 Alerts', videogids:'🎬 Video Gids', modes:'⚙️ 3 Modes', tips:'💡 Tips',
+  glossary:'📖 Glossary', setup:'🚀 Setup'
+};
+
+function admRenderInsights() {
+  var body = document.getElementById('insights-body');
+  if (!body) return;
+  var raw = null;
+  try { raw = JSON.parse(localStorage.getItem('kento_analytics') || 'null'); } catch(e) {}
+  if (!raw || (!Object.keys(raw.pageViews||{}).length && !Object.keys(raw.navClicks||{}).length)) {
+    body.innerHTML = '<div style="color:#8b949e;font-size:13px;text-align:center;padding:40px">Nog geen data beschikbaar. Navigeer in de app om data te verzamelen.</div>';
+    return;
+  }
+
+  function barRow(label, val, max, col) {
+    var pct = max > 0 ? Math.round(val/max*100) : 0;
+    return '<div class="ins-bar-wrap">'
+      + '<div class="ins-bar-label"><span>'+label+'</span><span style="color:#8b949e">'+val+'×</span></div>'
+      + '<div class="ins-bar-track"><div class="ins-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+      + '</div>';
+  }
+
+  var pv = raw.pageViews || {};
+  var nc = raw.navClicks || {};
+  var sd = raw.scrollDepth || {};
+  var tp = raw.timeOnPage || {};
+
+  // Sort page views
+  var pvEntries = Object.keys(pv).map(function(k){ return {id:k, n:pv[k]}; }).sort(function(a,b){return b.n-a.n;});
+  var maxPv = pvEntries.length ? pvEntries[0].n : 1;
+
+  // Sort scroll depths
+  var sdEntries = Object.keys(sd).map(function(k){ return {id:k, n:Math.round(sd[k])}; }).sort(function(a,b){return b.n-a.n;});
+
+  // Time on page (in seconds → minutes)
+  var tpEntries = Object.keys(tp).map(function(k){ return {id:k, n:Math.round(tp[k]/1000)}; }).sort(function(a,b){return b.n-a.n;});
+  var maxTp = tpEntries.length ? tpEntries[0].n : 1;
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">';
+
+  // Page views
+  html += '<div><div class="ins-section-hd">📄 Meest bezochte pagina\'s</div>';
+  if (pvEntries.length) {
+    pvEntries.slice(0,8).forEach(function(e){ html += barRow(MOD_LABELS[e.id]||e.id, e.n, maxPv, '#2196F3'); });
+  } else { html += '<div style="color:#8b949e;font-size:12px">Geen data</div>'; }
+  html += '</div>';
+
+  // Scroll depth
+  html += '<div><div class="ins-section-hd">📜 Scroll diepte per pagina</div>';
+  if (sdEntries.length) {
+    sdEntries.slice(0,8).forEach(function(e){
+      var pct = Math.min(e.n, 100);
+      html += '<div class="ins-bar-wrap">'
+        + '<div class="ins-bar-label"><span>'+(MOD_LABELS[e.id]||e.id)+'</span><span style="color:#8b949e">'+pct+'%</span></div>'
+        + '<div class="ins-bar-track"><div class="ins-bar-fill" style="width:'+pct+'%;background:'+(pct>=80?'#089981':pct>=50?'#ffc107':'#F23645')+'"></div></div>'
+        + '</div>';
+    });
+  } else { html += '<div style="color:#8b949e;font-size:12px">Geen data</div>'; }
+  html += '</div>';
+
+  // Time on page
+  html += '<div><div class="ins-section-hd">⏱ Tijd op pagina (seconden)</div>';
+  if (tpEntries.length) {
+    tpEntries.slice(0,8).forEach(function(e){ html += barRow(MOD_LABELS[e.id]||e.id, e.n+'s', maxTp, '#9c27b0'); });
+  } else { html += '<div style="color:#8b949e;font-size:12px">Geen data</div>'; }
+  html += '</div>';
+
+  // Total stats
+  var totalViews = pvEntries.reduce(function(s,e){return s+e.n;},0);
+  var totalClicks = Object.values(nc).reduce(function(s,v){return s+v;},0);
+  html += '<div><div class="ins-section-hd">📈 Totaal overzicht</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    + '<div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:900;color:#2196F3">'+totalViews+'</div><div style="font-size:11px;color:#8b949e">Pagina bezoeken</div></div>'
+    + '<div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:900;color:#26a69a">'+totalClicks+'</div><div style="font-size:11px;color:#8b949e">Nav. klikken</div></div>'
+    + '<div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:900;color:#ff9800">'+(pvEntries.length?pvEntries[0].id:'—')+'</div><div style="font-size:11px;color:#8b949e">Populairste pagina</div></div>'
+    + '<div style="background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:900;color:#f48fb1">'+(sdEntries.length?Math.round(sdEntries.reduce(function(s,e){return s+e.n;},0)/sdEntries.length)+'%':'—')+'</div><div style="font-size:11px;color:#8b949e">Gem. scroll</div></div>'
+    + '</div></div>';
+
+  html += '</div>';
+
+  // Last updated
+  if (raw.lastUpdated) {
+    html += '<div style="font-size:11px;color:#8b949e;margin-top:16px;text-align:right">Laatste update: '+new Date(raw.lastUpdated).toLocaleString('nl-NL')+'</div>';
+  }
+  body.innerHTML = html;
+}
+
+function admClearInsights() {
+  if (!confirm('Weet je zeker dat je alle inzicht-data wil wissen?')) return;
+  localStorage.removeItem('kento_analytics');
+  admRenderInsights();
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
