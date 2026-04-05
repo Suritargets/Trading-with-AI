@@ -257,9 +257,12 @@ body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', syst
 
 /* ── MAIN ── */
 .main { margin-left: var(--sidebar-w); margin-top: 52px; flex: 1; transition: margin-left .25s ease; }
-.page { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
-.page-en { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; }
+.page { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; transition: max-width .25s ease, padding .25s ease; }
+.page-en { display: none; padding: 48px 48px 80px; max-width: 900px; animation: fadeIn .25s ease; transition: max-width .25s ease, padding .25s ease; }
 .page.active { display: block; }
+/* Sidebar mini → content expands full width */
+.main.sb-mini .page,
+.main.sb-mini .page-en { max-width: 100%; padding-left: 40px; padding-right: 40px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ── TYPOGRAPHY ── */
@@ -8438,11 +8441,92 @@ function switchMonth(prefix, n) {
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
+// ── ANALYTICS ENGINE ─────────────────────────────────────────────────────────
+var _kAna = (function() {
+  var STORE_KEY = 'kento_analytics';
+  var _data = null;
+  var _pageStart = null;
+  var _curPage  = null;
+  var _maxScroll = {};
+
+  function _load() {
+    if (_data) return _data;
+    try { _data = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch(e) {}
+    if (!_data) _data = { pageViews:{}, navClicks:{}, scrollDepth:{}, timeOnPage:{}, lastUpdated:null };
+    return _data;
+  }
+  function _save() {
+    if (!_data) return;
+    _data.lastUpdated = new Date().toISOString();
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(_data)); } catch(e) {}
+  }
+  function trackPage(pageId) {
+    var d = _load();
+    // Save time on previous page
+    if (_curPage && _pageStart) {
+      var elapsed = Date.now() - _pageStart;
+      d.timeOnPage[_curPage] = (d.timeOnPage[_curPage] || 0) + elapsed;
+      // Save max scroll for prev page
+      if (_maxScroll[_curPage] !== undefined) {
+        d.scrollDepth[_curPage] = Math.max(d.scrollDepth[_curPage] || 0, _maxScroll[_curPage]);
+      }
+    }
+    // Start new page
+    d.pageViews[pageId] = (d.pageViews[pageId] || 0) + 1;
+    _curPage   = pageId;
+    _pageStart = Date.now();
+    _maxScroll[pageId] = _maxScroll[pageId] || 0;
+    _save();
+  }
+  function trackNavClick(navId) {
+    var d = _load();
+    d.navClicks[navId] = (d.navClicks[navId] || 0) + 1;
+    _save();
+  }
+  function trackScroll(pageId, pct) {
+    if (!_maxScroll[pageId] || pct > _maxScroll[pageId]) _maxScroll[pageId] = pct;
+  }
+  // Scroll listener on main element
+  document.addEventListener('DOMContentLoaded', function() {
+    var mainEl = document.getElementById('main');
+    if (mainEl) {
+      mainEl.addEventListener('scroll', function() {
+        if (!_curPage) return;
+        var el = mainEl.querySelector('.page.active, .page-en.en-visible');
+        if (!el) return;
+        var scrolled = mainEl.scrollTop;
+        var total = el.scrollHeight - mainEl.clientHeight;
+        if (total > 0) trackScroll(_curPage, Math.round(scrolled / total * 100));
+      }, { passive: true });
+    }
+    // Nav click tracking
+    document.querySelectorAll('.nav-item[onclick]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var id = el.id || '';
+        if (id) trackNavClick(id);
+      });
+    });
+    // Flush on page unload
+    window.addEventListener('beforeunload', function() {
+      var d = _load();
+      if (_curPage && _pageStart) {
+        d.timeOnPage[_curPage] = (d.timeOnPage[_curPage]||0) + (Date.now()-_pageStart);
+        if (_maxScroll[_curPage]) d.scrollDepth[_curPage] = Math.max(d.scrollDepth[_curPage]||0, _maxScroll[_curPage]);
+      }
+      _save();
+    });
+  });
+  return { trackPage: trackPage, trackNavClick: trackNavClick };
+})();
+// ─────────────────────────────────────────────────────────────────────────────
+
 function showPage(id) {
   // Block navigation to hidden modules
   var hiddenMods = [];
   try { hiddenMods = JSON.parse(localStorage.getItem('kento_hidden_modules') || '[]'); } catch(e) {}
   if (id !== 'home' && hiddenMods.indexOf(id) >= 0) { id = 'home'; }
+  // Track page view
+  _kAna.trackPage(id);
 
   const currentLang = document.documentElement.lang || 'nl';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -8643,12 +8727,18 @@ function toggleSidebar() { document.getElementById('sidebar').classList.toggle('
 function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); }
 
 function toggleSidebarMini() {
-  var sb  = document.getElementById('sidebar');
-  var btn = document.getElementById('sb-collapse-btn');
+  var sb   = document.getElementById('sidebar');
+  var btn  = document.getElementById('sb-collapse-btn');
   var main = document.getElementById('main');
+  var prog = document.getElementById('progress');
   var isMini = sb.classList.toggle('mini');
   btn.textContent = isMini ? '▶' : '◀';
-  if (main) main.style.marginLeft = isMini ? '58px' : '';
+  if (main) {
+    main.style.marginLeft = isMini ? '58px' : '';
+    if (isMini) main.classList.add('sb-mini');
+    else        main.classList.remove('sb-mini');
+  }
+  if (prog) prog.style.left = isMini ? '58px' : '';
   try { localStorage.setItem('kento_sidebar_mini', isMini ? '1' : '0'); } catch(e) {}
 }
 
@@ -8675,12 +8765,14 @@ function sbUpdateUser() {
 document.addEventListener('DOMContentLoaded', function() {
   try {
     if (localStorage.getItem('kento_sidebar_mini') === '1') {
-      var sb = document.getElementById('sidebar');
-      var btn = document.getElementById('sb-collapse-btn');
+      var sb   = document.getElementById('sidebar');
+      var btn  = document.getElementById('sb-collapse-btn');
       var main = document.getElementById('main');
-      if (sb) sb.classList.add('mini');
-      if (btn) btn.textContent = '▶';
-      if (main) main.style.marginLeft = '58px';
+      var prog = document.getElementById('progress');
+      if (sb)   sb.classList.add('mini');
+      if (btn)  btn.textContent = '▶';
+      if (main) { main.style.marginLeft = '58px'; main.classList.add('sb-mini'); }
+      if (prog) prog.style.left = '58px';
     }
   } catch(e) {}
   sbUpdateUser();
@@ -9511,9 +9603,24 @@ var TC = {
 
 // ── MODULE VISIBILITY ────────────────────────────────────────────────────────
 // Reads hidden modules from API (with localStorage fallback) and applies visibility
-function applyModuleVisibility() {
+function _getMergedHidden() {
+  // Global hidden list
   var hidden = [];
   try { hidden = JSON.parse(localStorage.getItem('kento_hidden_modules') || '[]'); } catch(e) {}
+  // Role-specific hidden list (based on current user's package)
+  try {
+    var s = JSON.parse(localStorage.getItem('kento_session_v2') || 'null');
+    var pkg = s && s.package ? s.package : null;
+    if (pkg && pkg !== 'admin') {
+      var roleHidden = JSON.parse(localStorage.getItem('kento_role_mods_' + pkg) || '[]');
+      roleHidden.forEach(function(m){ if (hidden.indexOf(m) === -1) hidden.push(m); });
+    }
+  } catch(e) {}
+  return hidden;
+}
+
+function applyModuleVisibility() {
+  var hidden = _getMergedHidden();
   _applyHiddenModules(hidden);
   // Skip API in local file mode
   if (window.location.protocol === 'file:' || window.location.hostname === '') return;
@@ -9521,7 +9628,7 @@ function applyModuleVisibility() {
   fetch('/api/modules').then(function(r){ return r.json(); }).then(function(d){
     if (d && Array.isArray(d.hiddenModules)) {
       localStorage.setItem('kento_hidden_modules', JSON.stringify(d.hiddenModules));
-      _applyHiddenModules(d.hiddenModules);
+      _applyHiddenModules(_getMergedHidden());
     }
   }).catch(function(){});
 }
